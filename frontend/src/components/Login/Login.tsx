@@ -12,18 +12,36 @@ interface LoginProps {
 
 export default function Login({ doLogin }: LoginProps): JSX.Element {
   const [mediaError, setMediaError] = useState<Error>();
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
 
   const LoginButton: React.FunctionComponent = () => {
-    const { loginWithRedirect } = useAuth0();
+    const { isAuthenticated, loginWithRedirect } = useAuth0();
   
-    return <Button onClick={() => loginWithRedirect()}>Log In</Button>;
+    return <Button 
+      onClick={async () => {
+        await loginWithRedirect();
+        setIsLoggedIn(isAuthenticated);
+      }}>
+        Log In or Sign Up
+    </Button>;
+  };
+  const LogoutButton: React.FunctionComponent = () => {
+    const { logout } = useAuth0();
+  
+    return (
+      <Button onClick={() => logout({ returnTo: window.location.origin })}>
+        Log Out
+      </Button>
+    );
   };
   
   return (
     <>
       <LoginButton/>
+      <LogoutButton/>
       <MediaErrorSnackbar error={mediaError} dismissError={() => setMediaError(undefined)} />
       <PreJoinScreens
+        isLoggedIn={isLoggedIn}
         doLogin={doLogin}
         setMediaError={setMediaError}
       />
