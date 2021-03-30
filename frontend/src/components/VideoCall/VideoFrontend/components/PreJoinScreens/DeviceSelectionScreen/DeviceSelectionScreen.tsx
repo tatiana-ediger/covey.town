@@ -62,9 +62,13 @@ const useStyles = makeStyles((theme: Theme) => ({
 
 interface DeviceSelectionScreenProps {
   setMediaError?(error: Error): void;
+  userEmail: string;
 }
 
-export default function DeviceSelectionScreen({ setMediaError }: DeviceSelectionScreenProps) {
+export default function DeviceSelectionScreen({ setMediaError, userEmail }: DeviceSelectionScreenProps) {
+  // TODO: call API, get their previous device selection preferences and auto-fill
+  // AND at the end, save/update their current preferences?
+  
   const classes = useStyles();
   const { getToken, isFetching } = useAppState();
   const {

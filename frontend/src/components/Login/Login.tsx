@@ -10,9 +10,10 @@ interface LoginProps {
   doLogin: (initData: TownJoinResponse) => Promise<boolean>
 }
 
+
 export default function Login({ doLogin }: LoginProps): JSX.Element {
   const [mediaError, setMediaError] = useState<Error>();
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [userEmail, setUserEmail] = useState<string>('');
 
   const LoginButton: React.FunctionComponent = () => {
     const { loginWithRedirect } = useAuth0();
@@ -60,7 +61,7 @@ export default function Login({ doLogin }: LoginProps): JSX.Element {
     }
 
     if (auth0.isAuthenticated) {
-      setIsLoggedIn(true);
+      setUserEmail(auth0.user.email ?? '');
       return (
         <>
           <LogoutButton/>
@@ -72,7 +73,7 @@ export default function Login({ doLogin }: LoginProps): JSX.Element {
         </>
       )
     }
-    setIsLoggedIn(false);
+    setUserEmail('');
     return <LoginButton/>
   }
   
@@ -81,7 +82,7 @@ export default function Login({ doLogin }: LoginProps): JSX.Element {
       <RegistrationComponent/>
       <MediaErrorSnackbar error={mediaError} dismissError={() => setMediaError(undefined)} />
       <PreJoinScreens
-        isLoggedIn={isLoggedIn}
+        userEmail={userEmail}
         doLogin={doLogin}
         setMediaError={setMediaError}
       />
