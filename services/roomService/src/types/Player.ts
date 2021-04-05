@@ -14,7 +14,10 @@ export default class Player {
   /** The player's username, which is not guaranteed to be unique within the town * */
   private readonly _userName: string;
 
-  constructor(userName: string) {
+  /** Determines whether the player is logged into Covey.Town or not */
+  private readonly _isLoggedIn: boolean;
+
+  constructor(userName: string, isLoggedIn: boolean, userId?: string) {
     this.location = {
       x: 0,
       y: 0,
@@ -22,7 +25,8 @@ export default class Player {
       rotation: 'front',
     };
     this._userName = userName;
-    this._id = nanoid();
+    this._id = isLoggedIn ? userId as string : nanoid();
+    this._isLoggedIn = isLoggedIn;
   }
 
   get userName(): string {

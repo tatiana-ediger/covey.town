@@ -6,16 +6,30 @@ var pgClient = new pg.Client(connectionString);
 
 pgClient.connect();
 
-/**  creates a new user */
-export function createUser() {
-
-}
-
-// updates the user information for the given user
-// can update username, email, setting preferences 
-function updateUserInfo(userInfo: UserInfo) {
+/**  
+ * checks if a user already exists, if so, updates their account, otherwise creates a new user 
+ * RETURN type: {success: true/false}
+ */
+export async function upsertUser(userInfo: UserInfo) {
     // UPDATE table SET ({originalA ?? newA})
 }
+
+/** 
+ * gets user info given an email 
+ * RETURN type: AccountTypes.User interface
+ */
+export async function getUser() {}
+
+/**
+ * deletes a user, specified by their email
+ * RETURN type: {success: true/false}
+ */
+export async function deleteUser() {}
+
+
+/**
+ * below functions maybe unnecessary?
+ */
 
 // retrieves the list of JoinedServers for a given user 
 function getJoinedServers() {
