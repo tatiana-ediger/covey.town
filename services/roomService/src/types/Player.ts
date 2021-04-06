@@ -1,3 +1,4 @@
+import { assert } from 'console';
 import { nanoid } from 'nanoid';
 import { UserLocation } from '../CoveyTypes';
 
@@ -25,12 +26,21 @@ export default class Player {
       rotation: 'front',
     };
     this._userName = userName;
-    this._id = isLoggedIn ? userId as string : nanoid();
     this._isLoggedIn = isLoggedIn;
+
+    if (isLoggedIn) {
+      assert(userId);
+    }
+
+    this._id = isLoggedIn ? userId as string : nanoid();
   }
 
   get userName(): string {
     return this._userName;
+  }
+
+  get isLoggedIn(): boolean {
+    return this._isLoggedIn;
   }
 
   get id(): string {

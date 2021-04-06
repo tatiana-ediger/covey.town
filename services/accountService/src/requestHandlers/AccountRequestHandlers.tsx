@@ -13,6 +13,13 @@ export interface SaveUserRequest {
 }
 
 /**
+ * Response from the server for a save user request
+ */
+export interface SaveUserResponse {
+    userId: string
+}
+
+/**
  * Payload sent by client to request information for a user's email
  */
 export interface GetUserRequest {
@@ -71,7 +78,10 @@ export async function saveUserHandler(requestData: SaveUserRequest): Promise<Res
             message: 'User email must be specified when saving a user',
         };
     }
-    const upsertUserResponse = await UserPreferencesRepository.upsertUser();
+
+    // code to retrieve a user id by calling auth0 api
+
+    const upsertUserResponse = await UserPreferencesRepository.upsertUser(userId, requestData);
     const success = upsertUserResponse.success;
     
     return {
@@ -107,6 +117,7 @@ export async function getUserHandler(requestData: GetUserRequest): Promise<Respo
 
 export async function deleteUserHandler(requestData: DeleteUserRequest): Promise<ResponseEnvelope<Record<string, null>>> {
     const deleteUser = await UserPreferencesRepository.deleteUser(requestData.userEmail);
+    
     const success = deleteUser.success;
     return {
       isOK: success,

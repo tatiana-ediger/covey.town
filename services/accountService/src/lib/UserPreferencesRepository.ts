@@ -18,7 +18,13 @@ export async function upsertUser(userInfo: UserInfo) {
  * gets user info given an email 
  * RETURN type: AccountTypes.User interface
  */
-export async function getUser() {}
+export async function getUser() {
+    /**
+     * going to need to get for each user: ID, email, username, use_audio, use_video, AccountTypes.JoinedTown[]
+     * Where the JoinedTown[] comes from maps table (which I think should be renamed to towns table) 
+     * (check John's discord message)
+     */
+}
 
 /**
  * deletes a user, specified by their email
