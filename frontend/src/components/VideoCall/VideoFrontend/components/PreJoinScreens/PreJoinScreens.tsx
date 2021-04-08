@@ -5,7 +5,7 @@ import IntroContainer from '../IntroContainer/IntroContainer';
 import { TownJoinResponse } from '../../../../../classes/TownsServiceClient';
 import TownSelection from '../../../../Login/TownSelection';
 
-export default function PreJoinScreens(props: { userEmail: string; doLogin: (initData: TownJoinResponse) => Promise<boolean>; setMediaError?(error: Error): void }) {
+export default function PreJoinScreens(props: { userID: string; doLogin: (initData: TownJoinResponse) => Promise<boolean>; setMediaError?(error: Error): void }) {
   return (
     <IntroContainer>
       <Heading as="h2" size="xl">Welcome to Covey.Town!</Heading>
@@ -14,8 +14,8 @@ export default function PreJoinScreens(props: { userEmail: string; doLogin: (ini
         To get started, setup your camera and microphone, choose a username, and then create a new town
         to hang out in, or join an existing one.
       </Text>
-      <DeviceSelectionScreen setMediaError={props.setMediaError} userEmail={props.userEmail} />
-      <TownSelection doLogin={props.doLogin} userEmail={props.userEmail} />
+      <DeviceSelectionScreen setMediaError={props.setMediaError} userEmail={props.userID} />
+      <TownSelection doLogin={props.doLogin} userID={props.userID} />
     </IntroContainer>
   );
 }

@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { Button } from "@chakra-ui/react"
 import PreJoinScreens from '../VideoCall/VideoFrontend/components/PreJoinScreens/PreJoinScreens';
 import MediaErrorSnackbar
   from '../VideoCall/VideoFrontend/components/PreJoinScreens/MediaErrorSnackbar/MediaErrorSnackbar';
 import { TownJoinResponse } from '../../classes/TownsServiceClient';
+import useCoveyAppState from '../../hooks/useCoveyAppState';
+import useUserInfo from '../../hooks/useUserInfo';
 
 interface LoginProps {
   doLogin: (initData: TownJoinResponse) => Promise<boolean>
@@ -13,7 +15,9 @@ interface LoginProps {
 
 export default function Login({ doLogin }: LoginProps): JSX.Element {
   const [mediaError, setMediaError] = useState<Error>();
-  const [userEmail, setUserEmail] = useState<string>('');
+  const [userID, setUserID] = useState<string>('');
+
+  const userInfo = useUserInfo();
 
   const LoginButton: React.FunctionComponent = () => {
     const { loginWithRedirect } = useAuth0();
@@ -55,16 +59,25 @@ export default function Login({ doLogin }: LoginProps): JSX.Element {
 
   const RegistrationComponent: React.FunctionComponent = () => {
     const auth0 = useAuth0();
+    const { accountApiClient } = useCoveyAppState();
 
     if (auth0.isLoading) {
       return <div>Loading ...</div>;
     }
 
     if (auth0.isAuthenticated) {
-      console.log('user', auth0.user)
-      setUserEmail(auth0.user.email ?? '');
-      // TODO - call AccountService !
       // something to consider / checkout - if while we are calling our accountService, the user is no longer authenticated, how would we handle this?
+      const saveUserDetails = useCallback(() => {
+        accountApiClient.saveUser({ userID: auth0.user.sub, userEmail: auth0.user.email })
+          .then(() => {
+            setUserID(auth0.user.sub);
+          });
+      }, [setUserID, accountApiClient]);
+
+      useEffect(() => {
+        saveUserDetails();
+      }, [saveUserDetails]);
+
       return (
         <>
           <LogoutButton/>
@@ -76,7 +89,7 @@ export default function Login({ doLogin }: LoginProps): JSX.Element {
         </>
       )
     }
-    setUserEmail('');
+    setUserID('');
     return <LoginButton/>
   }
   
@@ -85,7 +98,7 @@ export default function Login({ doLogin }: LoginProps): JSX.Element {
       <RegistrationComponent/>
       <MediaErrorSnackbar error={mediaError} dismissError={() => setMediaError(undefined)} />
       <PreJoinScreens
-        userEmail={userEmail}
+        userID={userID}
         doLogin={doLogin}
         setMediaError={setMediaError}
       />

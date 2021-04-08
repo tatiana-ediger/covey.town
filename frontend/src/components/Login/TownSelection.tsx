@@ -26,10 +26,10 @@ import useCoveyAppState from '../../hooks/useCoveyAppState';
 
 interface TownSelectionProps {
   doLogin: (initData: TownJoinResponse) => Promise<boolean>
-  userEmail: string
+  userID: string
 }
 
-export default function TownSelection({ doLogin, userEmail }: TownSelectionProps): JSX.Element {
+export default function TownSelection({ doLogin, userID }: TownSelectionProps): JSX.Element {
   const [userName, setUserName] = useState<string>(Video.instance()?.userName || '');
   const [newTownName, setNewTownName] = useState<string>('');
   const [newTownIsPublic, setNewTownIsPublic] = useState<boolean>(true);
