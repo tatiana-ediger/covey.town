@@ -61,14 +61,17 @@ export default function Login({ doLogin }: LoginProps): JSX.Element {
     }
 
     if (auth0.isAuthenticated) {
+      console.log('user', auth0.user)
       setUserEmail(auth0.user.email ?? '');
+      // TODO - call AccountService !
+      // something to consider / checkout - if while we are calling our accountService, the user is no longer authenticated, how would we handle this?
       return (
         <>
           <LogoutButton/>
           <ProfilePage
             picture={auth0.user.picture as string}
             name={auth0.user.name as string}
-            email={auth0.user.email as string} 
+            email={auth0.user.email as string}
           />
         </>
       )
