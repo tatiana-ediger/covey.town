@@ -221,7 +221,9 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
 
   const page = useMemo(() => {
     if (!appState.sessionToken) {
-      return <Login doLogin={setupGameController} />;
+      return (
+      //TODO: add registration bit here?
+      <Login doLogin={setupGameController} />);
     } if (!videoInstance) {
       return <div>Loading...</div>;
     }
