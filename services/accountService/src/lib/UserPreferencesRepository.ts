@@ -8,11 +8,11 @@ pgClient.connect();
 
 interface UserInfo {
     user_id: string,
-    email: string,
-    username: string,
-    use_audio: boolean,
-    use_video: boolean,
-    JoinedTowns: TownInfo[],
+    email?: string,
+    username?: string,
+    use_audio?: boolean,
+    use_video?: boolean,
+    JoinedTowns?: TownInfo[],
 }
 interface TownInfo {
     user_id: string,
@@ -31,14 +31,38 @@ export async function upsertUser(userInfo: UserInfo) : Promise<Boolean> {
     try {
         const userIdQuery = await pgClient.query(`SELECT user_id FROM user_preferences WHERE user_id=${user_id};`)
         if (user_id === userIdQuery) {
-            pgClient.query(`UPDATE user_preferences SET email = ${userInfo.email} WHERE user_id=${user_id};`)
-            pgClient.query(`UPDATE user_preferences SET username = ${userInfo.username} WHERE user_id=${user_id};`)
+
+            /**
+             *      UPDATE tbl_ClientNotes
+                    SET 
+                    ordering=ISNULL@ordering,ordering), 
+                    title=isnull(@title,title), 
+                    content=isnull(@content,content)
+                    WHERE id=@id
+             */
+
+            
+            const sql = `UPDATE user_preferences SET 
+                email=ISNULL('${userInfo.email}', email),
+                username=ISNULL('${userInfo.username}', username),
+                use_audio=ISNULL(${userInfo.use_audio}, use_audio),
+                use_video=ISNULL(${userInfo.use_video}, use_video);`;
+            
+            pgClient
+                .query(sql)
+                .then(() => { return true }) // it worked
+                .catch((err: { stack: any; }) => console.error(err.stack));
+
+
+            // wut is this i never saw this before im mind blown LMAO
+            pgClient.query(`UPDATE user_preferences SET email = '${userInfo.email}' WHERE user_id=${user_id};`)
+            pgClient.query(`UPDATE user_preferences SET username = '${userInfo.username}' WHERE user_id=${user_id};`)
             pgClient.query(`UPDATE user_preferences SET use_audio = ${userInfo.use_audio} WHERE user_id=${user_id};`)
             pgClient.query(`UPDATE user_preferences SET use_video= ${userInfo.use_video} WHERE user_id=${user_id};`)
             return true;
         } else {
             pgClient.query(`INSERT INTO user_preferences (user_id, username, use_audio, use_video) VALUES 
-            (${user_id}, ${userInfo.username}, ${userInfo.use_audio}, ${userInfo.use_video});`)
+            ('${user_id}', '${userInfo.username}', ${userInfo.use_audio}, ${userInfo.use_video});`)
             return true;
         }
     } catch {
@@ -56,12 +80,12 @@ export async function getUserByID(user_id: string) : Promise<UserInfo> {
      * Where the JoinedTown[] comes from maps table (which I think should be renamed to towns table) 
      * (check John's discord message)
      */
-    const email = await pgClient.query(`SELECT email FROM user_preferences WHERE user_id=${user_id};`);
-    const username = await pgClient.query(`SELECT username FROM user_preferences WHERE user_id=${user_id};`);
-    const use_audio = await pgClient.query(`SELECT use_audio FROM user_preferences WHERE user_id=${user_id};`);
-    const use_video = await pgClient.query(`SELECT use_video FROM user_preferences WHERE user_id=${user_id};`);
+    const email = await pgClient.query(`SELECT email FROM user_preferences WHERE user_id='${user_id}';`);
+    const username = await pgClient.query(`SELECT username FROM user_preferences WHERE user_id='${user_id}';`);
+    const use_audio = await pgClient.query(`SELECT use_audio FROM user_preferences WHERE user_id='${user_id}';`);
+    const use_video = await pgClient.query(`SELECT use_video FROM user_preferences WHERE user_id='${user_id}';`);
     
-    let townInfoQuery = await pgClient.query(`SELECT * from towns WHERE user_id=${user_id};`);
+    let townInfoQuery = await pgClient.query(`SELECT * from towns WHERE user_id='${user_id};'`);
     const townArray = new Array<TownInfo>();
 
     pgClient.each(townInfoQuery, [], (town: { user_id: string; server_id: number; map_id: number; x_pos: number; y_pos: number; }) => {
@@ -79,8 +103,8 @@ export async function getUserByID(user_id: string) : Promise<UserInfo> {
  * RETURN type: {success: true/false}
  */
 export async function deleteUser(user_id: string) : Promise<Boolean> {
-    await pgClient.query(`DELETE FROM towns WHERE user_id=${user_id};`);
-    let deletedRows = await pgClient.query(`DELETE FROM user_preferences WHERE user_id=${user_id};`);
+    await pgClient.query(`DELETE FROM towns WHERE user_id='${user_id}';`);
+    let deletedRows = await pgClient.query(`DELETE FROM user_preferences WHERE user_id='${user_id}';`);
     if (deletedRows == 0) {
         return false;
     }
@@ -90,15 +114,15 @@ export async function deleteUser(user_id: string) : Promise<Boolean> {
 // Adds the a server to the list of servers that a user is part of
 export async function addTownToTownArray(townInfo: TownInfo) : Promise<Boolean> {
     try {
-        const townIDQuery = await pgClient.query(`SELECT server_id FROM towns WHERE server_id=${townInfo.server_id} AND user_id=${townInfo.user_id};`);
+        const townIDQuery = await pgClient.query(`SELECT server_id FROM towns WHERE server_id=${townInfo.server_id} AND user_id='${townInfo.user_id}';`);
         if (townIDQuery === townInfo.server_id) {
-            pgClient.query(`UPDATE user_preferences SET = map_id = ${townInfo.map_id} WHERE server_id=${townInfo.server_id};`);
+            pgClient.query(`UPDATE user_preferences SET map_id = ${townInfo.map_id} WHERE server_id=${townInfo.server_id};`);
             pgClient.query(`UPDATE user_preferences SET x_pos = ${townInfo.x_pos} WHERE server_id=${townInfo.server_id};`);
             pgClient.query(`UPDATE user_preferences SET y_pos = ${townInfo.y_pos} WHERE server_id=${townInfo.server_id};`);
             return true;
         } else {
             await pgClient.query(`INSERT INTO towns (user_id, server_id, map_id, x_pos, y_pos) VALUES 
-            (${townInfo.user_id}, ${townInfo.server_id}, ${townInfo.map_id}, ${townInfo.x_pos}, ${townInfo.y_pos});`);
+            ('${townInfo.user_id}', ${townInfo.server_id}, ${townInfo.map_id}, ${townInfo.x_pos}, ${townInfo.y_pos});`);
             return true;
         }
     } catch {
