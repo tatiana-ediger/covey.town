@@ -61,10 +61,12 @@ const useStyles = makeStyles((theme: Theme) => ({
 }));
 
 interface DeviceSelectionScreenProps {
+  useAudio: boolean
+  useVideo: boolean
   setMediaError?(error: Error): void;
 }
 
-export default function DeviceSelectionScreen({ setMediaError }: DeviceSelectionScreenProps) {
+export default function DeviceSelectionScreen({ useAudio, useVideo, setMediaError }: DeviceSelectionScreenProps) {
   const classes = useStyles();
   const { getToken, isFetching } = useAppState();
   const {
@@ -74,6 +76,8 @@ export default function DeviceSelectionScreen({ setMediaError }: DeviceSelection
   const {
     handleSubmit, errors, register, formState,
   } = useForm();
+
+  console.log('props: useAudio: ', useAudio, 'useVideo: ', useVideo)
 
   return (
     <>

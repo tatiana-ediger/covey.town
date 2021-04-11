@@ -29,3 +29,16 @@ export type CoveyAppState = {
   socket: Socket | null,
   apiClient: TownsServiceClient,
 };
+export type UserInfo = {
+  userID: string,
+  email: string,
+  username: string,
+  useAudio: boolean,
+  useVideo: boolean,
+  maps: JoinedTownInfo[],
+};
+export type JoinedTownInfo = {
+  mapID: string,
+  locationX: number,
+  locationY: number,
+};

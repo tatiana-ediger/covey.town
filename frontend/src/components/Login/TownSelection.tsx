@@ -19,17 +19,19 @@ import {
   Tr,
   useToast
 } from '@chakra-ui/react';
+import { useAuth0 } from '@auth0/auth0-react';
 import useVideoContext from '../VideoCall/VideoFrontend/hooks/useVideoContext/useVideoContext';
 import Video from '../../classes/Video/Video';
 import { CoveyTownInfo, TownJoinResponse, } from '../../classes/TownsServiceClient';
 import useCoveyAppState from '../../hooks/useCoveyAppState';
 
 interface TownSelectionProps {
+  username: string
   doLogin: (initData: TownJoinResponse) => Promise<boolean>
 }
 
-export default function TownSelection({ doLogin }: TownSelectionProps): JSX.Element {
-  const [userName, setUserName] = useState<string>(Video.instance()?.userName || '');
+export default function TownSelection({ username, doLogin }: TownSelectionProps): JSX.Element {
+  const [userName, setUserName] = useState<string>(username || '');
   const [newTownName, setNewTownName] = useState<string>('');
   const [newTownIsPublic, setNewTownIsPublic] = useState<boolean>(true);
   const [townIDToJoin, setTownIDToJoin] = useState<string>('');
@@ -38,6 +40,7 @@ export default function TownSelection({ doLogin }: TownSelectionProps): JSX.Elem
   const { apiClient } = useCoveyAppState();
   const toast = useToast();
 
+  console.log(userName);
   const updateTownListings = useCallback(() => {
     // console.log(apiClient);
     apiClient.listTowns()
@@ -89,6 +92,12 @@ export default function TownSelection({ doLogin }: TownSelectionProps): JSX.Elem
     }
   }, [doLogin, userName, connect, toast]);
 
+  const handleSaveUsername = () => {
+    // TODO call api to saveUser!
+    // on succes, toast!
+    console.log('will save username')
+  }
+
   const handleCreate = async () => {
     if (!userName || userName.length === 0) {
       toast({
@@ -136,6 +145,8 @@ export default function TownSelection({ doLogin }: TownSelectionProps): JSX.Elem
     }
   };
 
+  const { isAuthenticated } = useAuth0();
+
   return (
     <>
       <form>
@@ -149,6 +160,9 @@ export default function TownSelection({ doLogin }: TownSelectionProps): JSX.Elem
                      value={userName}
                      onChange={event => setUserName(event.target.value)}
               />
+              { isAuthenticated &&
+                <Button onClick={handleSaveUsername}>Save Account Username</Button>
+              }
             </FormControl>
           </Box>
           <Box borderWidth="1px" borderRadius="lg">
