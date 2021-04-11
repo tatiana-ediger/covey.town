@@ -19,11 +19,18 @@ import {
   Tr,
   useToast
 } from '@chakra-ui/react';
+import { Grid, Hidden, makeStyles, Theme, } from '@material-ui/core';
 import { useAuth0 } from '@auth0/auth0-react';
 import useVideoContext from '../VideoCall/VideoFrontend/hooks/useVideoContext/useVideoContext';
 import Video from '../../classes/Video/Video';
 import { CoveyTownInfo, TownJoinResponse, } from '../../classes/TownsServiceClient';
 import useCoveyAppState from '../../hooks/useCoveyAppState';
+
+const useStyles = makeStyles((theme: Theme) => ({
+  saveUserButton: {
+    float: 'right',
+  },
+}));
 
 interface TownSelectionProps {
   username: string
@@ -39,6 +46,8 @@ export default function TownSelection({ username, doLogin }: TownSelectionProps)
   const { connect } = useVideoContext();
   const { apiClient } = useCoveyAppState();
   const toast = useToast();
+
+  const classes = useStyles();
 
   console.log(userName);
   const updateTownListings = useCallback(() => {
@@ -153,6 +162,7 @@ export default function TownSelection({ username, doLogin }: TownSelectionProps)
         <Stack>
           <Box p="4" borderWidth="1px" borderRadius="lg">
             <Heading as="h2" size="lg">Select a username</Heading>
+            <Flex p="4">
 
             <FormControl>
               <FormLabel htmlFor="name">Name</FormLabel>
@@ -160,10 +170,12 @@ export default function TownSelection({ username, doLogin }: TownSelectionProps)
                      value={userName}
                      onChange={event => setUserName(event.target.value)}
               />
-              { isAuthenticated &&
-                <Button onClick={handleSaveUsername}>Save Account Username</Button>
-              }
+
             </FormControl>
+            { isAuthenticated &&
+                <Button onClick={handleSaveUsername}>Save Name</Button>
+              }
+            </Flex>
           </Box>
           <Box borderWidth="1px" borderRadius="lg">
             <Heading p="4" as="h2" size="lg">Create a New Town</Heading>
