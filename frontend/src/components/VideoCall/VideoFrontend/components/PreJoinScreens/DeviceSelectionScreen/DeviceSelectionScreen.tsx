@@ -77,8 +77,6 @@ export default function DeviceSelectionScreen({ useAudio, useVideo, setMediaErro
     handleSubmit, errors, register, formState,
   } = useForm();
 
-  console.log('props: useAudio: ', useAudio, 'useVideo: ', useVideo)
-
   return (
     <>
       <Grid container justify="center" aria-label="join video room form">

@@ -33,12 +33,13 @@ const useStyles = makeStyles((theme: Theme) => ({
 }));
 
 interface TownSelectionProps {
-  username: string
+  username: string;
   doLogin: (initData: TownJoinResponse) => Promise<boolean>
 }
 
 export default function TownSelection({ username, doLogin }: TownSelectionProps): JSX.Element {
-  const [userName, setUserName] = useState<string>(username || '');
+  console.log(username);
+  const [userName, setUserName] = useState<string>(username);
   const [newTownName, setNewTownName] = useState<string>('');
   const [newTownIsPublic, setNewTownIsPublic] = useState<boolean>(true);
   const [townIDToJoin, setTownIDToJoin] = useState<string>('');
@@ -49,7 +50,6 @@ export default function TownSelection({ username, doLogin }: TownSelectionProps)
 
   const classes = useStyles();
 
-  console.log(userName);
   const updateTownListings = useCallback(() => {
     // console.log(apiClient);
     apiClient.listTowns()
@@ -149,7 +149,7 @@ export default function TownSelection({ username, doLogin }: TownSelectionProps)
       toast({
         title: `Town ${newTownName} is ready to go!`,
         description: <>{privateMessage}Please record these values in case you need to change the
-          room:<br/>Town ID: {newTownInfo.coveyTownID}<br/>Town Editing
+          room:<br />Town ID: {newTownInfo.coveyTownID}<br />Town Editing
           Password: {newTownInfo.coveyTownPassword}</>,
         status: 'success',
         isClosable: true,
@@ -175,15 +175,15 @@ export default function TownSelection({ username, doLogin }: TownSelectionProps)
             <Heading as="h2" size="lg">Select a username</Heading>
             <Flex p="4">
 
-            <FormControl>
-              <FormLabel htmlFor="name">Name</FormLabel>
-              <Input autoFocus name="name" placeholder="Your name"
-                     value={userName}
-                     onChange={event => setUserName(event.target.value)}
-              />
+              <FormControl>
+                <FormLabel htmlFor="name">Name</FormLabel>
+                <Input autoFocus name="name" placeholder="Your name"
+                  value={userName}
+                  onChange={event => setUserName(event.target.value)}
+                />
 
-            </FormControl>
-            { isAuthenticated &&
+              </FormControl>
+              {isAuthenticated &&
                 <Button onClick={handleSaveUsername}>Save</Button>
               }
             </Flex>
@@ -195,19 +195,19 @@ export default function TownSelection({ username, doLogin }: TownSelectionProps)
                 <FormControl>
                   <FormLabel htmlFor="townName">New Town Name</FormLabel>
                   <Input name="townName" placeholder="New Town Name"
-                         value={newTownName}
-                         onChange={event => setNewTownName(event.target.value)}
+                    value={newTownName}
+                    onChange={event => setNewTownName(event.target.value)}
                   />
                 </FormControl>
               </Box><Box>
-              <FormControl>
-                <FormLabel htmlFor="isPublic">Publicly Listed</FormLabel>
-                <Checkbox id="isPublic" name="isPublic" isChecked={newTownIsPublic}
-                          onChange={(e) => {
-                            setNewTownIsPublic(e.target.checked)
-                          }}/>
-              </FormControl>
-            </Box>
+                <FormControl>
+                  <FormLabel htmlFor="isPublic">Publicly Listed</FormLabel>
+                  <Checkbox id="isPublic" name="isPublic" isChecked={newTownIsPublic}
+                    onChange={(e) => {
+                      setNewTownIsPublic(e.target.checked)
+                    }} />
+                </FormControl>
+              </Box>
               <Box>
                 <Button data-testid="newTownButton" onClick={handleCreate}>Create</Button>
               </Box>
@@ -221,11 +221,11 @@ export default function TownSelection({ username, doLogin }: TownSelectionProps)
               <Flex p="4"><FormControl>
                 <FormLabel htmlFor="townIDToJoin">Town ID</FormLabel>
                 <Input name="townIDToJoin" placeholder="ID of town to join, or select from list"
-                       value={townIDToJoin}
-                       onChange={event => setTownIDToJoin(event.target.value)}/>
+                  value={townIDToJoin}
+                  onChange={event => setTownIDToJoin(event.target.value)} />
               </FormControl>
                 <Button data-testid='joinTownByIDButton'
-                        onClick={() => handleJoin(townIDToJoin)}>Connect</Button>
+                  onClick={() => handleJoin(townIDToJoin)}>Connect</Button>
               </Flex>
 
             </Box>
@@ -241,7 +241,7 @@ export default function TownSelection({ username, doLogin }: TownSelectionProps)
                       role='cell'>{town.coveyTownID}</Td>
                       <Td role='cell'>{town.currentOccupancy}/{town.maximumOccupancy}
                         <Button onClick={() => handleJoin(town.coveyTownID)}
-                                disabled={town.currentOccupancy >= town.maximumOccupancy}>Connect</Button></Td></Tr>
+                          disabled={town.currentOccupancy >= town.maximumOccupancy}>Connect</Button></Td></Tr>
                   ))}
                 </Tbody>
               </Table>
