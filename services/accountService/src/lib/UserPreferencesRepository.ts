@@ -1,7 +1,11 @@
-const { pg } = require('pg-promise')();
-
-var connectionString = `postgres://kisvchxzkztlyx:02c7828881c5e71290f509916361926b80923b88c0dddeaf170cb111cdbb4c51@${'ec2-18-204-101-137.compute-1.amazonaws.com'}/ip:5432/d46idgb6list1r`;
-var pgClient = pg(connectionString);
+const { Client } = require('pg');
+const client = new Client({
+  connectionString:
+    'postgres://kisvchxzkztlyx:02c7828881c5e71290f509916361926b80923b88c0dddeaf170cb111cdbb4c51@ec2-18-204-101-137.compute-1.amazonaws.com:5432/d46idgb6list1r',
+  ssl: {
+    rejectUnauthorized: false,
+  },
+});
 
 export interface UserInfo {
   user_id: string;
@@ -23,21 +27,15 @@ export interface TownInfo {
  * checks if a user already exists, if so, updates their account, otherwise creates a new user
  * RETURN type: {success: true/false}
  */
-
-export async function connectToDb() {
-  pgClient.connect();
-}
-
-export async function disconnectFromDb() {
-  pgClient.end();
-}
-
 export async function upsertUser(userInfo: UserInfo): Promise<Boolean> {
   const user_id = userInfo.user_id;
 
-  const userIdQuery = await pgClient.query(
+  client.connect();
+  const userIdQuery = await client.query(
     `SELECT user_id FROM user_preferences WHERE user_id='${user_id}';`,
   );
+  client.end();
+  
   if (user_id === userIdQuery) {
     const query = {
       name: 'update-user',
@@ -46,9 +44,11 @@ export async function upsertUser(userInfo: UserInfo): Promise<Boolean> {
       values: [userInfo.email, userInfo.username, userInfo.use_audio, userInfo.use_video],
     };
 
-    pgClient.query(query).catch(() => {
+    client.connect();
+    client.query(query).catch(() => {
       return false;
     });
+    client.end();
   } else {
     const query = {
       name: 'insert-user',
@@ -57,9 +57,11 @@ export async function upsertUser(userInfo: UserInfo): Promise<Boolean> {
       values: [user_id, userInfo.username, userInfo.email, userInfo.use_audio, userInfo.use_video],
     };
 
-    pgClient.query(query).catch(() => {
+    client.connect();
+    client.query(query).catch(() => {
       return false;
     });
+    client.end();
   }
 
   return upsertTowns(userInfo);
@@ -82,30 +84,24 @@ export async function upsertTowns(userInfo: UserInfo): Promise<Boolean> {
     values: ['user_id', 'server_id', 'map_id', 'x_pos', 'y_pos', user_id],
   };
 
-  const townInfoQuery = pgClient
-    .query(townQuery)
-    .catch((e: { stack: any }) => console.error(e.stack));
-
-  pgClient.each(
-    townInfoQuery,
-    [],
-    (town: {
-      user_id: string;
-      server_id: number;
-      map_id: number;
-      x_pos: number;
-      y_pos: number;
-    }) => {
+  client.connect();
+  client.query(townQuery, (err: any, res: any) => {
+    if (err) {
+      console.error(err);
+      return;
+    }
+    for (let row of res.rows) {
       let townInfo: TownInfo = {
-        user_id: town.user_id,
-        server_id: town.server_id,
-        map_id: town.map_id,
-        x_pos: town.x_pos,
-        y_pos: town.y_pos,
+        user_id: row.user_id,
+        server_id: row.server_id,
+        map_id: row.map_id,
+        x_pos: row.x_pos,
+        y_pos: row.y_pos,
       };
       toUpdate.push(townInfo);
-    },
-  );
+    }
+    client.end();
+  });
 
   townArray?.forEach(town => {
     if (!toUpdate.includes(town)) {
@@ -119,12 +115,14 @@ export async function upsertTowns(userInfo: UserInfo): Promise<Boolean> {
         name: 'insert-table',
         text:
           'INSERT INTO towns (user_id, server_id, map_id, x_pos, y_pos) VALUES ($1, $2, $3, $4, $5)',
-        values: [user_id, town.server_id, town.server_id, town.map_id, town.x_pos, town.y_pos],
+        values: [user_id, town.server_id, town.map_id, town.x_pos, town.y_pos],
       };
 
-      pgClient.query(query).catch(() => {
+      client.connect();
+      client.query(query).catch(() => {
         return false;
       });
+      client.end();
     });
   }
 
@@ -137,9 +135,11 @@ export async function upsertTowns(userInfo: UserInfo): Promise<Boolean> {
         values: [town.server_id, town.map_id, town.x_pos, town.y_pos, user_id],
       };
 
-      pgClient.query(query).catch(() => {
+      client.connect();
+      client.query(query).catch(() => {
         return false;
       });
+      client.end();
     });
   }
 
@@ -152,57 +152,54 @@ export async function upsertTowns(userInfo: UserInfo): Promise<Boolean> {
  */
 export async function getUserByID(user_id: string): Promise<UserInfo> {
   const townArray = new Array<TownInfo>();
-
-  const userQuery = {
-    name: 'get-user',
-    text: 'SELECT $1, $2, $3, $5 FROM user_preferences WHERE user_id=$6',
-    values: ['email', 'username', 'use_audio', 'use_video', user_id],
-  };
-
-  const userInfoQuery = pgClient
-    .query(userQuery)
-    .catch((e: { stack: any }) => console.error(e.stack));
-
   const townQuery = {
     name: 'get-town',
     text: 'SELECT $1, $2, $3, $4, $5 from towns WHERE user_id=$6',
     values: ['user_id', 'server_id', 'map_id', 'x_pos', 'y_pos', user_id],
   };
 
-  const townInfoQuery = pgClient
-    .query(townQuery)
-    .catch((e: { stack: any }) => console.error(e.stack));
-
-  pgClient.each(
-    townInfoQuery,
-    [],
-    (town: {
-      user_id: string;
-      server_id: number;
-      map_id: number;
-      x_pos: number;
-      y_pos: number;
-    }) => {
+  client.connect();
+  client.query(townQuery, (err: any, res: any) => {
+    if (err) {
+      console.error(err);
+      return;
+    }
+    for (let row of res.rows) {
       let townInfo: TownInfo = {
-        user_id: town.user_id,
-        server_id: town.server_id,
-        map_id: town.map_id,
-        x_pos: town.x_pos,
-        y_pos: town.y_pos,
+        user_id: row.user_id,
+        server_id: row.server_id,
+        map_id: row.map_id,
+        x_pos: row.x_pos,
+        y_pos: row.y_pos,
       };
       townArray.push(townInfo);
-    },
-  );
+    }
+  });
+  client.end();
 
-  let userInfo: UserInfo = {
-    user_id: userInfoQuery.user_id,
-    email: userInfoQuery.email,
-    username: userInfoQuery.username,
-    use_audio: userInfoQuery.use_audio,
-    use_video: userInfoQuery.use_video,
-    JoinedTowns: townArray,
+  let userInfo: UserInfo = { user_id: user_id };
+  const userQuery = {
+    name: 'get-user',
+    text: 'SELECT $1, $2, $3, $4, $5 FROM user_preferences WHERE user_id=$6',
+    values: ['user_id', 'email', 'username', 'use_audio', 'use_video', user_id],
   };
 
+  client.connect();
+  client.query(userQuery, (err: any, res: any) => {
+    if (err) {
+      console.error(err);
+      return;
+    }
+    userInfo = {
+      user_id: res.rows[0].user_id,
+      email: res.rows[0].email,
+      username: res.rows[0].username,
+      use_audio: res.rows[0].use_audio,
+      use_video: res.rows[0].use_video,
+      JoinedTowns: townArray,
+    };
+  });
+  client.end();
   return userInfo;
 }
 
@@ -211,10 +208,15 @@ export async function getUserByID(user_id: string): Promise<UserInfo> {
  * RETURN type: {success: true/false}
  */
 export async function deleteUser(user_id: string): Promise<Boolean> {
-  const deletedTowns = await pgClient.query(`DELETE FROM towns WHERE user_id='${user_id}';`);
-  const deletedUser = await pgClient.query(
+  client.connect();
+  const deletedTowns = await client.query(`DELETE FROM towns WHERE user_id='${user_id}';`);
+  client.end();
+
+  client.connect();
+  const deletedUser = await client.query(
     `DELETE FROM user_preferences WHERE user_id='${user_id}';`,
   );
+  client.end();
 
   let result = true;
   if (deletedTowns < 0 && deletedUser < 0) {
