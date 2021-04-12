@@ -8,11 +8,19 @@ import TownSelection from '../../../../Login/TownSelection';
 import { UserInfo } from '../../../../../CoveyTypes';
 import { useAuth0 } from '@auth0/auth0-react';
 
-const useStyles = makeStyles((theme: Theme) => ({
+const useStyles = makeStyles(() => ({
+  registration: {
+    marginBottom: '3.5em',
+  },
   userProfile: {
     float: 'right',
-    display: 'flex',
-    justifyContent: 'space-between',
+  },
+  logoutButton: {
+    float: 'left',
+  },
+  userEmail: {
+    display: 'block',
+    textAlign: 'right',
   },
 }));
 
@@ -21,8 +29,6 @@ export default function PreJoinScreens(props: { doLogin: (initData: TownJoinResp
   const [userInfo, setUserInfo] = useState<UserInfo>(loggedOutUser);
   const [loggedIn, setLoggedIn] = useState<boolean>(false);
   const auth0 = useAuth0();
-
-  
 
   useEffect(() => {
     if (loggedIn) {
@@ -41,40 +47,46 @@ export default function PreJoinScreens(props: { doLogin: (initData: TownJoinResp
   }, [loggedIn]);
 
   function Registration(): JSX.Element {  
-
-    const classes = useStyles();
-
-
     if (auth0.isLoading) {
         return <div>Authentication Loading ...</div>;
     }
 
-    if (auth0.isAuthenticated) { 
-      if (auth0.isAuthenticated !== loggedIn) {
-        setLoggedIn(auth0.isAuthenticated);
-      }
+    const classes = useStyles();
+    if (auth0.isAuthenticated !== loggedIn) {
+      setLoggedIn(auth0.isAuthenticated);
+    }
 
+    if (auth0.isAuthenticated) {
       return (
           <>
-              <Button onClick={() => auth0.logout({ returnTo: window.location.origin })}>
+            <div className={classes.registration}>
+              <Image className={classes.userProfile}
+                borderRadius="full"
+                boxSize="50px"
+                src={auth0.user.picture}
+                title={auth0.user.email}
+              />
+              <Button 
+                className={classes.logoutButton}
+                onClick={() => auth0.logout({ returnTo: window.location.origin })}>
                   Log Out
               </Button>
-              <div className={classes.userProfile}>
-                <Image
-                  borderRadius="full"
-                  boxSize="50px"
-                  src={auth0.user.picture}
-                  title={auth0.user.email}
-                />
-                {/* <h1>{auth0.user.email}</h1> */}
-              </div>
+            </div>
           </>
       );
     }
-  
-    return <Button onClick={async () => { await auth0.loginWithRedirect(); }} >
-      Log In or Sign Up
-    </Button>;
+
+    return (
+      <>
+        <div className={classes.registration}>
+          <Button
+            className={classes.logoutButton}
+            onClick={async () => { await auth0.loginWithRedirect(); }} >
+            Log In or Sign Up
+          </Button>
+        </div>
+      </>
+    );
   }
   
   return (

@@ -103,8 +103,19 @@ export default function TownSelection({ username, doLogin }: TownSelectionProps)
 
   const handleSaveUsername = () => {
     // TODO call api to saveUser!
-    // on succes, toast!
-    console.log('will save username')
+    try {
+      toast({
+        title: 'Successfully saved username!',
+        description: `Any time you log into Covey.Town in the future, your username will already be filled in the name box.`,
+        status: 'success',
+      });
+    } catch (err) {
+      toast({
+        title: 'Unable to connect to Account Service',
+        description: err.toString(),
+        status: 'error',
+      });
+    }
   }
 
   const handleCreate = async () => {
@@ -173,7 +184,7 @@ export default function TownSelection({ username, doLogin }: TownSelectionProps)
 
             </FormControl>
             { isAuthenticated &&
-                <Button onClick={handleSaveUsername}>Save Name</Button>
+                <Button onClick={handleSaveUsername}>Save</Button>
               }
             </Flex>
           </Box>
