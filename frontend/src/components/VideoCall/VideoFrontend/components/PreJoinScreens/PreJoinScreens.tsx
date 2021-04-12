@@ -9,10 +9,12 @@ import { UserInfo } from '../../../../../CoveyTypes';
 import { useAuth0 } from '@auth0/auth0-react';
 
 export default function PreJoinScreens(props: { doLogin: (initData: TownJoinResponse) => Promise<boolean>; setMediaError?(error: Error): void }) {
-  const loggedOutUser = { userID: '', email: '', username: 'LOGGEDOUT', useAudio: false, useVideo: false, maps: [] };
-  const [userInfo, setUserInfo] = useState<UserInfo>(loggedOutUser);
-  const [loggedIn, setLoggedIn] = useState<boolean>(false);
   const auth0 = useAuth0();
+
+  const loggedOutUser = { userID: '', email: '', username: '', useAudio: false, useVideo: false, maps: [] };
+  const getData = { userID: 'test123', username: 'testuser123', email: 'testuser123@email.com', useAudio: true, useVideo: false, maps: [] };
+  const [loggedIn, setLoggedIn] = useState<boolean>(auth0.isAuthenticated);
+  const [userInfo, setUserInfo] = useState<UserInfo>(auth0.isAuthenticated ? getData : loggedOutUser);
 
   if (auth0.isAuthenticated !== loggedIn) {
     setLoggedIn(auth0.isAuthenticated);
@@ -26,7 +28,7 @@ export default function PreJoinScreens(props: { doLogin: (initData: TownJoinResp
       const saveData = { success: true }
       const getData = { userID: 'test123', username: 'testuser123', email: 'testuser123@email.com', useAudio: true, useVideo: false, maps: [] }
       setUserInfo({ userID: getData.userID, email: getData.email, username: getData.username, useAudio: getData.useAudio, useVideo: getData.useVideo, maps: getData.maps });
-
+      console.log('Im logged in')
     }
     else {
       // set to default value
@@ -50,6 +52,7 @@ export default function PreJoinScreens(props: { doLogin: (initData: TownJoinResp
         useVideo={userInfo.useVideo}
         setMediaError={props.setMediaError}
       />
+      {console.log(userInfo.username)}
       <TownSelection
         username={userInfo.username}
         doLogin={props.doLogin} />

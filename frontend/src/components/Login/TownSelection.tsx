@@ -38,10 +38,10 @@ interface TownSelectionProps {
 }
 
 export default function TownSelection({ username, doLogin }: TownSelectionProps): JSX.Element {
-  console.log(username);
-  const [userName, setUserName] = useState<string>(username);
+  const [userName, setUserName] = useState<string>('');
   const [newTownName, setNewTownName] = useState<string>('');
   const [newTownIsPublic, setNewTownIsPublic] = useState<boolean>(true);
+  const [useSavedUserName, setUseSavedUserName] = useState<boolean>(false);
   const [townIDToJoin, setTownIDToJoin] = useState<string>('');
   const [currentPublicTowns, setCurrentPublicTowns] = useState<CoveyTownInfo[]>();
   const { connect } = useVideoContext();
@@ -167,24 +167,39 @@ export default function TownSelection({ username, doLogin }: TownSelectionProps)
 
   const { isAuthenticated } = useAuth0();
 
+  // white-space attribute to nowrap
+
   return (
     <>
       <form>
         <Stack>
           <Box p="4" borderWidth="1px" borderRadius="lg">
             <Heading as="h2" size="lg">Select a username</Heading>
-            <Flex p="4">
+            <Flex>
 
               <FormControl>
                 <FormLabel htmlFor="name">Name</FormLabel>
                 <Input autoFocus name="name" placeholder="Your name"
+                  isDisabled={useSavedUserName}
                   value={userName}
                   onChange={event => setUserName(event.target.value)}
                 />
 
               </FormControl>
               {isAuthenticated &&
-                <Button onClick={handleSaveUsername}>Save</Button>
+                <>
+                  <Box>
+                    <FormControl>
+                      <FormLabel whiteSpace="nowrap" htmlFor="savedUserName">Saved Name</FormLabel>
+                      <Checkbox id="savedUserName" name="savedUserName" isChecked={useSavedUserName}
+                        onChange={(e) => {
+                          setUseSavedUserName(e.target.checked);
+                          setUserName(username);
+                        }} />
+                    </FormControl>
+                  </Box>
+                  <Button isDisabled={useSavedUserName} onClick={handleSaveUsername}>Save</Button>
+                </>
               }
             </Flex>
           </Box>

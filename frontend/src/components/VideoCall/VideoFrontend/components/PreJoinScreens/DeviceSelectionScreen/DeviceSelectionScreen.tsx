@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { Button, FormControl, FormErrorMessage, FormLabel, Input, useToast, } from '@chakra-ui/react';
 import assert from 'assert';
 import LocalVideoPreview from './LocalVideoPreview/LocalVideoPreview';
+import LocalStorage_TwilioVideo from '../../../../../../classes/LocalStorage/TwilioVideo';
 import SettingsMenu from './SettingsMenu/SettingsMenu';
 import ToggleAudioButton from '../../Buttons/ToggleAudioButton/ToggleAudioButton';
 import ToggleVideoButton from '../../Buttons/ToggleVideoButton/ToggleVideoButton';
@@ -77,6 +78,9 @@ export default function DeviceSelectionScreen({ useAudio, useVideo, setMediaErro
     handleSubmit, errors, register, formState,
   } = useForm();
 
+  // set LocalStorage_TwilioVideo constant to True
+  // LocalStorage_TwilioVideo.twilioVideoMicEnabled = true;
+
   return (
     <>
       <Grid container justify="center" aria-label="join video room form">
@@ -90,6 +94,8 @@ export default function DeviceSelectionScreen({ useAudio, useVideo, setMediaErro
                 className={classes.mobileButton}
                 disabled={disableButtons}
                 setMediaError={setMediaError}
+                //enabled={useAudio}
+                isAudioEnabled={true}
               />
               <ToggleVideoButton
                 className={classes.mobileButton}
@@ -108,6 +114,7 @@ export default function DeviceSelectionScreen({ useAudio, useVideo, setMediaErro
                   className={classes.deviceButton}
                   disabled={disableButtons}
                   setMediaError={setMediaError}
+                  isAudioEnabled={true}
                 />
                 <ToggleVideoButton
                   className={classes.deviceButton}

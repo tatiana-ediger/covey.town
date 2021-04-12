@@ -38,7 +38,7 @@ export type UserInfo = {
   maps: JoinedTownInfo[],
 };
 export type JoinedTownInfo = {
-  mapID: string,
+  townID: string,
   locationX: number,
   locationY: number,
 };
