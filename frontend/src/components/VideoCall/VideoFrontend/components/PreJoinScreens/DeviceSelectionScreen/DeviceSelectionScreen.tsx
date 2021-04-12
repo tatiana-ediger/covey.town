@@ -1,7 +1,8 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
+import { useAuth0 } from '@auth0/auth0-react';
 import { Grid, Hidden, makeStyles, Theme, } from '@material-ui/core';
 import { useForm } from 'react-hook-form';
-import { Button, FormControl, FormErrorMessage, FormLabel, Input, useToast, } from '@chakra-ui/react';
+import { Button, Checkbox, FormControl, FormErrorMessage, FormLabel, Input, useToast, } from '@chakra-ui/react';
 import assert from 'assert';
 import LocalVideoPreview from './LocalVideoPreview/LocalVideoPreview';
 import LocalStorage_TwilioVideo from '../../../../../../classes/LocalStorage/TwilioVideo';
@@ -68,7 +69,10 @@ interface DeviceSelectionScreenProps {
 }
 
 export default function DeviceSelectionScreen({ useAudio, useVideo, setMediaError }: DeviceSelectionScreenProps) {
+  console.log(`useAudio: ${useAudio}`);
   const classes = useStyles();
+  const [useSavedDevicePreferences, setUseSavedDevicePreferences] = useState<boolean>(false);
+
   const { getToken, isFetching } = useAppState();
   const {
     connect, isAcquiringLocalTracks, isConnecting, localAudioTrack, localVideoTrack,
@@ -81,6 +85,8 @@ export default function DeviceSelectionScreen({ useAudio, useVideo, setMediaErro
   // set LocalStorage_TwilioVideo constant to True
   // LocalStorage_TwilioVideo.twilioVideoMicEnabled = true;
 
+  const auth0 = useAuth0();
+
   return (
     <>
       <Grid container justify="center" aria-label="join video room form">
@@ -92,16 +98,25 @@ export default function DeviceSelectionScreen({ useAudio, useVideo, setMediaErro
             <Hidden mdUp>
               <ToggleAudioButton
                 className={classes.mobileButton}
-                disabled={disableButtons}
+                disabled={useSavedDevicePreferences || disableButtons}
                 setMediaError={setMediaError}
-                //enabled={useAudio}
-                isAudioEnabled={true}
+                savedAudioEnabled={useSavedDevicePreferences ? useAudio : undefined} // only want to pass down when checked
               />
               <ToggleVideoButton
                 className={classes.mobileButton}
-                disabled={disableButtons}
+                disabled={useSavedDevicePreferences || disableButtons}
                 setMediaError={setMediaError}
+                savedVideoEnabled={useSavedDevicePreferences ? useVideo : undefined}
               />
+              {auth0.isAuthenticated &&
+                <>
+                  <FormLabel whiteSpace="nowrap" htmlFor="savedUserName">Saved Media</FormLabel>
+                  <Checkbox id="savedDevicePreferences" name="savedDevicePreferences" isChecked={useSavedDevicePreferences}
+                    onChange={(e) => {
+                      setUseSavedDevicePreferences(e.target.checked);
+                    }} />
+                </>
+              }
             </Hidden>
             <SettingsMenu mobileButtonClass={classes.mobileButton} />
           </div>
@@ -112,14 +127,15 @@ export default function DeviceSelectionScreen({ useAudio, useVideo, setMediaErro
               <Hidden smDown>
                 <ToggleAudioButton
                   className={classes.deviceButton}
-                  disabled={disableButtons}
+                  disabled={useSavedDevicePreferences || disableButtons}
                   setMediaError={setMediaError}
-                  isAudioEnabled={true}
+                  savedAudioEnabled={useSavedDevicePreferences ? useAudio : undefined}
                 />
                 <ToggleVideoButton
                   className={classes.deviceButton}
-                  disabled={disableButtons}
+                  disabled={useSavedDevicePreferences || disableButtons}
                   setMediaError={setMediaError}
+                  savedVideoEnabled={useSavedDevicePreferences ? useVideo : undefined}
                 />
               </Hidden>
             </div>

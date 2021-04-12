@@ -11,13 +11,15 @@ import { useHasAudioInputDevices } from '../../../hooks/deviceHooks/deviceHooks'
 export default function ToggleAudioButton(props: {
   disabled?: boolean;
   className?: string;
-  isAudioEnabled?: boolean;
+  savedAudioEnabled?: boolean;
   setMediaError?(error: Error): void;
 }) {
-  const { isEnabled, toggleAudioEnabled } = useLocalAudioToggle();
-  const isAudioEnabled = props.isAudioEnabled ? props.isAudioEnabled : isEnabled;
+  const { isEnabled: isAudioEnabled, toggleAudioEnabled } = useLocalAudioToggle();
   const lastClickTimeRef = useRef(0);
   const hasAudioDevices = useHasAudioInputDevices();
+  const isUnmuted = props.savedAudioEnabled !== undefined ? props.savedAudioEnabled : isAudioEnabled;
+
+  console.log(`savedAudioEnabled: ${props.savedAudioEnabled ?? 'none'}, isAudioEnabled: ${isUnmuted}`);
 
   const toggleAudio = useCallback(async () => {
     if (Date.now() - lastClickTimeRef.current > 200) {
@@ -37,10 +39,10 @@ export default function ToggleAudioButton(props: {
       className={props.className}
       onClick={toggleAudio}
       disabled={props.disabled || !hasAudioDevices}
-      startIcon={isAudioEnabled ? <MicIcon /> : <MicOffIcon />}
+      startIcon={isUnmuted ? <MicIcon /> : <MicOffIcon />}
       data-cy-audio-toggle
     >
-      {!hasAudioDevices ? 'No audio devices' : isAudioEnabled ? 'Mute' : 'Unmute'}
+      {!hasAudioDevices ? 'No audio devices' : isUnmuted ? 'Mute' : 'Unmute'}
     </Button>
   );
 }
