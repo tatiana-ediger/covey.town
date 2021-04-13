@@ -17,7 +17,7 @@ export default function ToggleVideoButton(props: {
   const { isEnabled: isVideoEnabled, toggleVideoEnabled } = useLocalVideoToggle();
   const lastClickTimeRef = useRef(0);
   const hasVideoDevices = useHasVideoInputDevices();
-  const useVideo = props.savedVideoEnabled !== undefined ? props.savedVideoEnabled : isVideoEnabled;
+  const showVideo = props.savedVideoEnabled !== undefined ? props.savedVideoEnabled : isVideoEnabled;
 
   const toggleVideo = useCallback(async () => {
     if (Date.now() - lastClickTimeRef.current > 200) {
@@ -32,14 +32,18 @@ export default function ToggleVideoButton(props: {
     }
   }, [props, toggleVideoEnabled]);
 
+  if (showVideo !== isVideoEnabled && hasVideoDevices) {
+    toggleVideo();
+  }
+
   return (
     <Button
       className={props.className}
       onClick={toggleVideo}
       disabled={!hasVideoDevices || props.disabled}
-      startIcon={useVideo ? <VideoOnIcon /> : <VideoOffIcon />}
+      startIcon={showVideo ? <VideoOnIcon /> : <VideoOffIcon />}
     >
-      {!hasVideoDevices ? 'No video devices' : useVideo ? 'Stop Video' : 'Start Video'}
+      {!hasVideoDevices ? 'No video devices' : showVideo ? 'Stop Video' : 'Start Video'}
     </Button>
   );
 }

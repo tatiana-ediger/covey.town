@@ -35,8 +35,6 @@ export default function PreJoinScreens(props: { doLogin: (initData: TownJoinResp
     }
   }, [loggedIn]);
 
-  console.log(`prejoin useAudio: ${userInfo.useAudio}`);
-
   return (
     <IntroContainer>
       <Registration

@@ -2,10 +2,9 @@ import React, { useCallback, useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { Grid, Hidden, makeStyles, Theme, } from '@material-ui/core';
 import { useForm } from 'react-hook-form';
-import { Button, Checkbox, FormControl, FormErrorMessage, FormLabel, Input, useToast, } from '@chakra-ui/react';
+import { Button, Checkbox, FormLabel, useToast } from '@chakra-ui/react';
 import assert from 'assert';
 import LocalVideoPreview from './LocalVideoPreview/LocalVideoPreview';
-import LocalStorage_TwilioVideo from '../../../../../../classes/LocalStorage/TwilioVideo';
 import SettingsMenu from './SettingsMenu/SettingsMenu';
 import ToggleAudioButton from '../../Buttons/ToggleAudioButton/ToggleAudioButton';
 import ToggleVideoButton from '../../Buttons/ToggleVideoButton/ToggleVideoButton';
@@ -69,9 +68,9 @@ interface DeviceSelectionScreenProps {
 }
 
 export default function DeviceSelectionScreen({ useAudio, useVideo, setMediaError }: DeviceSelectionScreenProps) {
-  console.log(`useAudio: ${useAudio}`);
   const classes = useStyles();
   const [useSavedDevicePreferences, setUseSavedDevicePreferences] = useState<boolean>(false);
+  const auth0 = useAuth0();
 
   const { getToken, isFetching } = useAppState();
   const {
@@ -82,10 +81,23 @@ export default function DeviceSelectionScreen({ useAudio, useVideo, setMediaErro
     handleSubmit, errors, register, formState,
   } = useForm();
 
-  // set LocalStorage_TwilioVideo constant to True
-  // LocalStorage_TwilioVideo.twilioVideoMicEnabled = true;
-
-  const auth0 = useAuth0();
+  const toast = useToast();
+  const handleSaveDevices = () => {
+    // TODO call api to saveUser!
+    try {
+      toast({
+        title: 'Successfully saved device settings!',
+        description: 'Any time you log into Covey.Town in the future, you can click the \'Saved Media\' button to apply these settings.',
+        status: 'success',
+      });
+    } catch (err) {
+      toast({
+        title: 'Unable to connect to Account Service',
+        description: err.toString(),
+        status: 'error',
+      });
+    }
+  };
 
   return (
     <>
@@ -114,7 +126,9 @@ export default function DeviceSelectionScreen({ useAudio, useVideo, setMediaErro
                   <Checkbox id="savedDevicePreferences" name="savedDevicePreferences" isChecked={useSavedDevicePreferences}
                     onChange={(e) => {
                       setUseSavedDevicePreferences(e.target.checked);
-                    }} />
+                    }} 
+                  />
+                  <Button float='right' isDisabled={useSavedDevicePreferences} onClick={handleSaveDevices}>Save</Button>
                 </>
               }
             </Hidden>
@@ -137,6 +151,17 @@ export default function DeviceSelectionScreen({ useAudio, useVideo, setMediaErro
                   setMediaError={setMediaError}
                   savedVideoEnabled={useSavedDevicePreferences ? useVideo : undefined}
                 />
+                {auth0.isAuthenticated &&
+                  <>
+                    <FormLabel whiteSpace="nowrap" htmlFor="savedUserName">Saved Media</FormLabel>
+                    <Checkbox id="savedDevicePreferences" name="savedDevicePreferences" isChecked={useSavedDevicePreferences}
+                      onChange={(e) => {
+                        setUseSavedDevicePreferences(e.target.checked);
+                      }}
+                    />
+                    <Button float='right' isDisabled={useSavedDevicePreferences} onClick={handleSaveDevices}>Save</Button>
+                  </>
+                }
               </Hidden>
             </div>
           </Grid>

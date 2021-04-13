@@ -19,8 +19,6 @@ export default function ToggleAudioButton(props: {
   const hasAudioDevices = useHasAudioInputDevices();
   const isUnmuted = props.savedAudioEnabled !== undefined ? props.savedAudioEnabled : isAudioEnabled;
 
-  console.log(`savedAudioEnabled: ${props.savedAudioEnabled ?? 'none'}, isAudioEnabled: ${isUnmuted}`);
-
   const toggleAudio = useCallback(async () => {
     if (Date.now() - lastClickTimeRef.current > 200) {
       lastClickTimeRef.current = Date.now();
@@ -33,6 +31,10 @@ export default function ToggleAudioButton(props: {
       }
     }
   }, [props, toggleAudioEnabled]);
+
+  if (isUnmuted !== isAudioEnabled && hasAudioDevices) {
+    toggleAudio();
+  }
 
   return (
     <Button
