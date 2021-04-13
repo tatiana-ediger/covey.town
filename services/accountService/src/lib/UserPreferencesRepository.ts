@@ -30,12 +30,8 @@ export interface TownInfo {
 export async function upsertUser(userInfo: UserInfo): Promise<Boolean> {
   const user_id = userInfo.user_id;
 
-  client.connect();
-  const userIdQuery = await client.query(
-    `SELECT user_id FROM user_preferences WHERE user_id='${user_id}';`,
-  );
-  client.end();
-  
+  const userIdQuery = await client.query(`SELECT user_id FROM user_preferences WHERE user_id='${user_id}';`);
+
   if (user_id === userIdQuery) {
     const query = {
       name: 'update-user',
@@ -44,11 +40,11 @@ export async function upsertUser(userInfo: UserInfo): Promise<Boolean> {
       values: [userInfo.email, userInfo.username, userInfo.use_audio, userInfo.use_video],
     };
 
-    client.connect();
-    client.query(query).catch(() => {
-      return false;
+    await client.query(query).then((err: any) => {
+      if (err) {
+        return false;
+      }
     });
-    client.end();
   } else {
     const query = {
       name: 'insert-user',
@@ -57,11 +53,11 @@ export async function upsertUser(userInfo: UserInfo): Promise<Boolean> {
       values: [user_id, userInfo.username, userInfo.email, userInfo.use_audio, userInfo.use_video],
     };
 
-    client.connect();
-    client.query(query).catch(() => {
-      return false;
+    await client.query(query).then((err: any) => {
+      if (err) {
+        return false;
+      }
     });
-    client.end();
   }
 
   return upsertTowns(userInfo);
@@ -84,8 +80,7 @@ export async function upsertTowns(userInfo: UserInfo): Promise<Boolean> {
     values: ['user_id', 'server_id', 'map_id', 'x_pos', 'y_pos', user_id],
   };
 
-  client.connect();
-  client.query(townQuery, (err: any, res: any) => {
+  await client.query(townQuery, (err: any, res: any) => {
     if (err) {
       console.error(err);
       return;
@@ -100,7 +95,6 @@ export async function upsertTowns(userInfo: UserInfo): Promise<Boolean> {
       };
       toUpdate.push(townInfo);
     }
-    client.end();
   });
 
   townArray?.forEach(town => {
@@ -118,11 +112,11 @@ export async function upsertTowns(userInfo: UserInfo): Promise<Boolean> {
         values: [user_id, town.server_id, town.map_id, town.x_pos, town.y_pos],
       };
 
-      client.connect();
-      client.query(query).catch(() => {
-        return false;
+      client.query(query).then((err: any) => {
+        if (err) {
+          return false;
+        }
       });
-      client.end();
     });
   }
 
@@ -135,11 +129,11 @@ export async function upsertTowns(userInfo: UserInfo): Promise<Boolean> {
         values: [town.server_id, town.map_id, town.x_pos, town.y_pos, user_id],
       };
 
-      client.connect();
-      client.query(query).catch(() => {
-        return false;
+      client.query(query).then((err: any) => {
+        if (err) {
+          return false;
+        }
       });
-      client.end();
     });
   }
 
@@ -152,54 +146,36 @@ export async function upsertTowns(userInfo: UserInfo): Promise<Boolean> {
  */
 export async function getUserByID(user_id: string): Promise<UserInfo> {
   const townArray = new Array<TownInfo>();
-  const townQuery = {
-    name: 'get-town',
-    text: 'SELECT $1, $2, $3, $4, $5 from towns WHERE user_id=$6',
-    values: ['user_id', 'server_id', 'map_id', 'x_pos', 'y_pos', user_id],
-  };
+  let userInfo: UserInfo = { user_id: ' ' };
 
-  client.connect();
-  client.query(townQuery, (err: any, res: any) => {
-    if (err) {
-      console.error(err);
-      return;
-    }
-    for (let row of res.rows) {
-      let townInfo: TownInfo = {
-        user_id: row.user_id,
-        server_id: row.server_id,
-        map_id: row.map_id,
-        x_pos: row.x_pos,
-        y_pos: row.y_pos,
+  await client
+    .query(`SELECT * FROM towns WHERE user_id = '${user_id}';`)
+    .then((res: { rows: any }) => {
+      for (let row of res.rows) {
+        let townInfo: TownInfo = {
+          user_id: row.user_id,
+          server_id: row.server_id,
+          map_id: row.map_id,
+          x_pos: row.x_pos,
+          y_pos: row.y_pos,
+        };
+        townArray.push(townInfo);
+      }
+    });
+
+  await client
+    .query(`SELECT * FROM user_preferences where user_id = '${user_id}';`)
+    .then((res: { rows: any }) => {
+      userInfo = {
+        user_id: res.rows[0].user_id,
+        email: res.rows[0].email,
+        username: res.rows[0].username,
+        use_audio: res.rows[0].use_audio,
+        use_video: res.rows[0].use_video,
+        JoinedTowns: [],
       };
-      townArray.push(townInfo);
-    }
-  });
-  client.end();
+    });
 
-  let userInfo: UserInfo = { user_id: user_id };
-  const userQuery = {
-    name: 'get-user',
-    text: 'SELECT $1, $2, $3, $4, $5 FROM user_preferences WHERE user_id=$6',
-    values: ['user_id', 'email', 'username', 'use_audio', 'use_video', user_id],
-  };
-
-  client.connect();
-  client.query(userQuery, (err: any, res: any) => {
-    if (err) {
-      console.error(err);
-      return;
-    }
-    userInfo = {
-      user_id: res.rows[0].user_id,
-      email: res.rows[0].email,
-      username: res.rows[0].username,
-      use_audio: res.rows[0].use_audio,
-      use_video: res.rows[0].use_video,
-      JoinedTowns: townArray,
-    };
-  });
-  client.end();
   return userInfo;
 }
 
@@ -208,20 +184,12 @@ export async function getUserByID(user_id: string): Promise<UserInfo> {
  * RETURN type: {success: true/false}
  */
 export async function deleteUser(user_id: string): Promise<Boolean> {
-  client.connect();
-  const deletedTowns = await client.query(`DELETE FROM towns WHERE user_id='${user_id}';`);
-  client.end();
+  try {
+    await client.query(`DELETE FROM user_preferences WHERE user_id = '${user_id}';`);
+    await client.query(`DELETE FROM towns WHERE user_id = '${user_id}';`);
 
-  client.connect();
-  const deletedUser = await client.query(
-    `DELETE FROM user_preferences WHERE user_id='${user_id}';`,
-  );
-  client.end();
-
-  let result = true;
-  if (deletedTowns < 0 && deletedUser < 0) {
-    result = false;
+    return true;
+  } catch {
+    return false;
   }
-
-  return result;
 }
