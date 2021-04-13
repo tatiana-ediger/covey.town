@@ -1,20 +1,14 @@
-export type JoinedTown = { townId: string; positionX: number; positionY: number };
-
-export type User = {
-  userEmail: string;
-  username: string;
-  servers: JoinedTown[];
-  useAudio: boolean;
-  useVideo: boolean;
+export type JoinedTown = {
+  townID: string;
+  positionX: number;
+  positionY: number;
 };
 
-/**
- * From login, email
- * From Auth0 api we get a userID
- * From database, we get a userID ?? how do we generate this?
- */
-
-/**
- * TownJoinRequest ->s
- *
- */
+export type UserInfo = {
+  userID: string;
+  userEmail: string;
+  username: string;
+  useAudio: boolean;
+  useVideo: boolean;
+  towns: JoinedTown[];
+};

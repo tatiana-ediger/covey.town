@@ -18,8 +18,7 @@ export interface UserInfo {
 }
 export interface TownInfo {
   user_id: string;
-  server_id: number;
-  map_id: number;
+  map_id: string;
   x_pos: number;
   y_pos: number;
 }

@@ -1,4 +1,5 @@
-import { TownInfo, UserInfo } from './UserPreferencesRepository';
+import { JoinedTown } from '../AccountTypes';
+import { UserInfo } from './UserPreferencesRepository';
 
 /**
  * Connection to the database used for the tests
@@ -15,35 +16,32 @@ const client = new Client({
 /**
  * Mock TownInfo used throughout the tests
  */
-const town1: TownInfo = {
-  user_id: 'john',
-  server_id: 1,
-  map_id: 12,
-  x_pos: 0,
-  y_pos: 0,
+const town1userId: string = 'john';
+const town1: JoinedTown = {
+  townID: '12',
+  positionX: 0,
+  positionY: 0,
 };
 
-const town2: TownInfo = {
-  user_id: 'john',
-  server_id: 2,
-  map_id: 12,
-  x_pos: 10,
-  y_pos: 0,
+const town2UserId: string = 'john';
+const town2: JoinedTown = {
+  townID: '12',
+  positionX: 10,
+  positionY: 0,
 };
 
-const town3: TownInfo = {
-  user_id: 'tatiana',
-  server_id: 1,
-  map_id: 12,
-  x_pos: 10,
-  y_pos: 10,
+const town3UserId: string = 'tatiana';
+const town3: JoinedTown = {
+  townID: '12',
+  positionX: 10,
+  positionY: 10,
 };
 
 /**
  * Mock User Info used throughout the tests
  */
 const jeminInfo: UserInfo = {
-  user_id: 'jemin',
+  userID: 'jemin',
   email: 'jemin@test.com',
   username: 'jem1',
   use_audio: false,
@@ -52,7 +50,7 @@ const jeminInfo: UserInfo = {
 };
 
 const kyleInfo: UserInfo = {
-  user_id: 'kyle',
+  userID: 'kyle',
   email: 'kyle@test.com',
   username: 'kyle1',
   use_audio: true,
@@ -61,7 +59,7 @@ const kyleInfo: UserInfo = {
 };
 
 const johnInfo: UserInfo = {
-  user_id: 'john',
+  userID: 'john',
   email: 'john@test.com',
   username: 'john1',
   use_audio: false,
@@ -70,7 +68,7 @@ const johnInfo: UserInfo = {
 };
 
 const tatiInfo: UserInfo = {
-  user_id: 'tatiana',
+  userID: 'tatiana',
   email: 'tati@test.com',
   username: 'tati1',
   use_audio: true,
@@ -95,15 +93,15 @@ const tatiTownInsert1 = `INSERT INTO towns (user_id, server_id, map_id, x_pos, y
 
 describe('deleteUser', () => {
   it('deletes a user (that has no joined town) when given a user in the database', async () => {
-    const user_id = 'jemin';
+    const userID = 'jemin';
     // Inserts the user into the user_preferences table of the database
     client.connect();
     await client.query(jeminUserInsert);
 
     // Checks to see if the user was properly added to the database
-    let userInfo: UserInfo = { user_id: ' ' };
+    let userInfo: UserInfo = { userID: ' ' };
     await client
-      .query(`SELECT * FROM user_preferences where user_id = '${user_id}';`)
+      .query(`SELECT * FROM user_preferences where user_id = '${userID}';`)
       .then((res: { rows: any }) => {
         userInfo = {
           user_id: res.rows[0].user_id,
@@ -246,3 +244,5 @@ describe('upsertTowns', () => {
     // similar format to above
   });
 });
+
+describe;

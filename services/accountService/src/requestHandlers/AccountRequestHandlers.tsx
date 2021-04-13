@@ -22,7 +22,7 @@ export interface SaveUserResponse {
  * Payload sent by client to request information for a user's email
  */
 export interface GetUserRequest {
-  userEmail: string;
+  userId: string;
 }
 
 /**
@@ -82,7 +82,7 @@ export async function saveUserHandler(
 
   // code to retrieve a user id by calling auth0 api
 
-  const upsertUserResponse = await UserPreferencesRepository.upsertUser(userId, requestData);
+  const upsertUserResponse = await UserPreferencesRepository.upsertUser(requestData);
   const success = upsertUserResponse.success;
 
   return {
