@@ -1,4 +1,5 @@
 const { Client } = require('pg');
+
 const client = new Client({
   connectionString:
     'postgres://kisvchxzkztlyx:02c7828881c5e71290f509916361926b80923b88c0dddeaf170cb111cdbb4c51@ec2-18-204-101-137.compute-1.amazonaws.com:5432/d46idgb6list1r',
@@ -27,10 +28,12 @@ export interface TownInfo {
  * checks if a user already exists, if so, updates their account, otherwise creates a new user
  * RETURN type: {success: true/false}
  */
-export async function upsertUser(userInfo: UserInfo): Promise<Boolean> {
+export async function upsertUser(userInfo: UserInfo): Promise<boolean> {
   const user_id = userInfo.user_id;
 
-  const userIdQuery = await client.query(`SELECT user_id FROM user_preferences WHERE user_id='${user_id}';`);
+  const userIdQuery = await client.query(
+    `SELECT user_id FROM user_preferences WHERE user_id='${user_id}';`,
+  );
 
   if (user_id === userIdQuery) {
     const query = {
@@ -67,7 +70,7 @@ export async function upsertUser(userInfo: UserInfo): Promise<Boolean> {
  * checks if a town exists with a user already joined, if so, updates the town info, otherwise adds to the town info list
  * RETURN type: {success: true/false}
  */
-export async function upsertTowns(userInfo: UserInfo): Promise<Boolean> {
+export async function upsertTowns(userInfo: UserInfo): Promise<boolean> {
   const user_id = userInfo.user_id;
   const townArray = userInfo.JoinedTowns;
 
@@ -183,7 +186,7 @@ export async function getUserByID(user_id: string): Promise<UserInfo> {
  * deletes a user, specified by their email
  * RETURN type: {success: true/false}
  */
-export async function deleteUser(user_id: string): Promise<Boolean> {
+export async function deleteUser(user_id: string): Promise<boolean> {
   try {
     await client.query(`DELETE FROM user_preferences WHERE user_id = '${user_id}';`);
     await client.query(`DELETE FROM towns WHERE user_id = '${user_id}';`);

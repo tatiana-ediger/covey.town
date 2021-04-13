@@ -206,7 +206,8 @@ describe('upsertUser', () => {
 
     const query1 = {
       name: 'insert-user',
-      text:'INSERT INTO user_preferences (user_id, username, email, use_audio, use_video) VALUES ($1, $2, $3, $4, $5)',
+      text:
+        'INSERT INTO user_preferences (user_id, username, email, use_audio, use_video) VALUES ($1, $2, $3, $4, $5)',
       values: [user_id, 'jem1', 'jemin@test.com', false, false],
     };
 

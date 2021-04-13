@@ -1,12 +1,12 @@
-export type JoinedTown = { townId: string, positionX: number, positionY: number }
+export type JoinedTown = { townId: string; positionX: number; positionY: number };
 
 export type User = {
-    userEmail: string,
-    username: string,
-    servers: JoinedTown[],
-    useAudio: boolean,
-    useVideo: boolean
-}
+  userEmail: string;
+  username: string;
+  servers: JoinedTown[];
+  useAudio: boolean;
+  useVideo: boolean;
+};
 
 /**
  * From login, email
@@ -15,6 +15,6 @@ export type User = {
  */
 
 /**
- * TownJoinRequest -> 
- * 
+ * TownJoinRequest ->s
+ *
  */
