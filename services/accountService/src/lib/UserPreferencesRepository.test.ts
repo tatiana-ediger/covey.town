@@ -1,11 +1,16 @@
 import { JoinedTown } from '../AccountTypes';
-import { UserInfo } from './UserPreferencesRepository';
+import {
+  deleteUser,
+  getUserByID,
+  upsertUser,
+  UserInfo,
+} from './UserPreferencesRepository';
 
 /**
  * Connection to the database used for the tests
  */
 const { Client } = require('pg');
-const client = new Client({
+const testClient = new Client({
   connectionString:
     'postgres://kisvchxzkztlyx:02c7828881c5e71290f509916361926b80923b88c0dddeaf170cb111cdbb4c51@ec2-18-204-101-137.compute-1.amazonaws.com:5432/d46idgb6list1r',
   ssl: {
@@ -13,26 +18,25 @@ const client = new Client({
   },
 });
 
+testClient.connect();
+
 /**
  * Mock TownInfo used throughout the tests
  */
-const town1userId: string = 'john';
 const town1: JoinedTown = {
-  townID: '12',
+  townID: '1',
   positionX: 0,
   positionY: 0,
 };
 
-const town2UserId: string = 'john';
 const town2: JoinedTown = {
-  townID: '12',
-  positionX: 10,
-  positionY: 0,
+  townID: '2',
+  positionX: 5,
+  positionY: 10,
 };
 
-const town3UserId: string = 'tatiana';
 const town3: JoinedTown = {
-  townID: '12',
+  townID: '3',
   positionX: 10,
   positionY: 10,
 };
@@ -42,207 +46,149 @@ const town3: JoinedTown = {
  */
 const jeminInfo: UserInfo = {
   userID: 'jemin',
-  email: 'jemin@test.com',
   username: 'jem1',
-  use_audio: false,
-  use_video: false,
-  JoinedTowns: [],
+  userEmail: 'jemin@test.com',
+  useAudio: false,
+  useVideo: false,
+  towns: [],
+};
+
+const jeminInfoUpdate: UserInfo = {
+  userID: 'jemin',
+  username: 'jem1',
+  userEmail: 'jemin@test.com',
+  useAudio: false,
+  useVideo: false,
+  towns: [town1],
 };
 
 const kyleInfo: UserInfo = {
   userID: 'kyle',
-  email: 'kyle@test.com',
   username: 'kyle1',
-  use_audio: true,
-  use_video: false,
-  JoinedTowns: [],
+  userEmail: 'kyle@test.com',
+  useAudio: true,
+  useVideo: false,
+  towns: [],
 };
 
 const johnInfo: UserInfo = {
   userID: 'john',
-  email: 'john@test.com',
   username: 'john1',
-  use_audio: false,
-  use_video: true,
-  JoinedTowns: [town1, town2],
+  userEmail: 'john@test.com',
+  useAudio: false,
+  useVideo: true,
+  towns: [town1, town2],
+};
+
+const johnInfoUpdate: UserInfo = {
+  userID: 'john',
+  username: 'john1',
+  userEmail: 'john@test.com',
+  useAudio: true,
+  useVideo: true,
+  towns: [town3, town1, town2],
 };
 
 const tatiInfo: UserInfo = {
   userID: 'tatiana',
-  email: 'tati@test.com',
   username: 'tati1',
-  use_audio: true,
-  use_video: true,
-  JoinedTowns: [town3],
+  userEmail: 'tati@test.com',
+  useAudio: true,
+  useVideo: true,
+  towns: [town3],
 };
 
-/**
- * Query to insert specific users for testing
- */
-const jeminUserInsert = `INSERT INTO user_preferences VALUES ('jemin', 'jem1', 'jemin@test.com', false, false);`;
-const kyleUserInsert = `INSERT INTO user_preferences VALUES ('kyle', 'kyle1', 'kyle@test.com', true, false);`;
-const johnUserInsert = `INSERT INTO user_preferences VALUES ('john', 'john1', 'john@test.com', false, true);`;
-const tatiUserInsert = `INSERT INTO user_preferences VALUES ('tatiana', 'tati1', 'tati@test.com', true, true);`;
+const tatiInfoUpdate: UserInfo = {
+  userID: 'tatiana',
+  username: 'tati1',
+  userEmail: 'tati@test.com',
+  useAudio: true,
+  useVideo: true,
+  towns: [],
+};
 
-/**
- * Query for inserting to the towns table for the server maps
- */
-const johnTownInsert1 = `INSERT INTO towns (user_id, server_id, map_id, x_pos, y_pos) VALUES ('john', 1, 12, 0, 0)`;
-const johnTownInsert2 = `INSERT INTO towns (user_id, server_id, map_id, x_pos, y_pos) VALUES ('john', 2, 12, 10, 0)`;
-const tatiTownInsert1 = `INSERT INTO towns (user_id, server_id, map_id, x_pos, y_pos) VALUES ('tatiana', 1, 12, 10, 10)`;
+describe('upsertUser, getUserById, deleteUser', () => {
+  it('inserts, retrieve, and deletes a user (that has no joined town) when given a user in the database', async () => {
+    const userID = 'kyle';
+    // Inserts the user into the user_preferences table of the database
+    let insertUser = await upsertUser(kyleInfo);
+    expect(insertUser).toBe(true);
+    
+    // Checks to see if the user was properly added to the database
+    let userInfo = await getUserByID(userID);
+    expect(userInfo).toStrictEqual(kyleInfo);
 
-describe('deleteUser', () => {
-  it('deletes a user (that has no joined town) when given a user in the database', async () => {
+    // delete the user from the database
+    let result = await deleteUser(userID);
+    expect(result).toBe(true);
+  });
+
+  it('inserts, updates, retrieve, and deletes a user (that has no joined town) when given a user in the database', async () => {
     const userID = 'jemin';
     // Inserts the user into the user_preferences table of the database
-    client.connect();
-    await client.query(jeminUserInsert);
+    const insertUser = await upsertUser(jeminInfo);
+    expect(insertUser).toBe(true);
 
     // Checks to see if the user was properly added to the database
-    let userInfo: UserInfo = { userID: ' ' };
-    await client
-      .query(`SELECT * FROM user_preferences where user_id = '${userID}';`)
-      .then((res: { rows: any }) => {
-        userInfo = {
-          user_id: res.rows[0].user_id,
-          email: res.rows[0].email,
-          username: res.rows[0].username,
-          use_audio: res.rows[0].use_audio,
-          use_video: res.rows[0].use_video,
-          JoinedTowns: [],
-        };
-      });
+    const userInfo = await getUserByID(userID);
+    expect(userInfo).toStrictEqual(jeminInfo)
+
+    // Updates the given user
+    const updateUser = await upsertUser(jeminInfoUpdate); 
+    expect(updateUser).toBe(true);
+
+    // Checks to see if the user was properly updated in the database
+    const updatedUserInfo = await getUserByID(userID);
+    expect(updatedUserInfo).toStrictEqual(jeminInfoUpdate);
 
     // delete the user from the database
-    let result = false;
-    try {
-      await client.query(`DELETE FROM user_preferences WHERE user_id = '${user_id}';`);
-      await client.query(`DELETE FROM towns WHERE user_id = '${user_id}';`);
-
-      result = true;
-    } catch {
-      result = false;
-    }
-
-    expect(result).toBe(true);
-    expect(userInfo).toStrictEqual(jeminInfo);
-
-    client.end();
+    let deletedUser = await deleteUser(userID)
+    expect(deletedUser).toBe(true);
   });
 
-  it('deletes a user (that has joined towns) when given a user in the database', async () => {
-    const user_id = 'john';
+  it('inserts, updates, retrieve, and deletes a user (that has joined town) when given a user in the database', async () => {
+    const userID = 'john';
     // Inserts the user into the user_preferences table of the database
-    client.connect();
-    await client.query(johnUserInsert);
-    await client.query(johnTownInsert1);
-    await client.query(johnTownInsert2);
+    const insertUser = await upsertUser(johnInfo);
+    expect(insertUser).toBe(true);
 
     // Checks to see if the user was properly added to the database
-    const townArray = new Array<TownInfo>();
-    await client
-      .query(`SELECT * FROM towns WHERE user_id = '${user_id}';`)
-      .then((res: { rows: any }) => {
-        for (let row of res.rows) {
-          let townInfo: TownInfo = {
-            user_id: row.user_id,
-            server_id: row.server_id,
-            map_id: row.map_id,
-            x_pos: row.x_pos,
-            y_pos: row.y_pos,
-          };
-          townArray.push(townInfo);
-        }
-      });
+    const userInfo = await getUserByID(userID);
+    expect(userInfo).toStrictEqual(johnInfo)
 
-    let userInfo: UserInfo = { user_id: ' ' };
-    await client
-      .query(`SELECT * FROM user_preferences where user_id = '${user_id}';`)
-      .then((res: { rows: any }) => {
-        userInfo = {
-          user_id: res.rows[0].user_id,
-          email: res.rows[0].email,
-          username: res.rows[0].username,
-          use_audio: res.rows[0].use_audio,
-          use_video: res.rows[0].use_video,
-          JoinedTowns: townArray,
-        };
-      });
+    // Updates the given user
+    const updateUser = await upsertUser(johnInfoUpdate); 
+    expect(updateUser).toBe(true);
+
+    // Checks to see if the user was properly updated in the database
+    const updatedUserInfo = await getUserByID(userID);
+    expect(updatedUserInfo).toStrictEqual(johnInfoUpdate);
 
     // delete the user from the database
-    let result = false;
-    try {
-      await client.query(`DELETE FROM user_preferences WHERE user_id = '${user_id}';`);
-      await client.query(`DELETE FROM towns WHERE user_id = '${user_id}';`);
+    let deletedUser = await deleteUser(userID)
+    expect(deletedUser).toBe(true);
+  });
 
-      result = true;
-    } catch {
-      result = false;
-    }
+  it('inserts, updates, retrieve, and deletes a user (that has joined town) when given a user in the database', async () => {
+    const userID = 'tatiana';
+    // Inserts the user into the user_preferences table of the database
+    const insertUser = await upsertUser(tatiInfo);
+    expect(insertUser).toBe(true);
 
-    expect(userInfo).toStrictEqual(johnInfo);
-    expect(result).toBe(true);
+    // Checks to see if the user was properly added to the database
+    const userInfo = await getUserByID(userID);
+    expect(userInfo).toStrictEqual(tatiInfo)
 
-    client.end();
+    // Updates the given user
+    const updateUser = await upsertUser(tatiInfoUpdate); 
+    expect(updateUser).toBe(true);
+
+    // Checks to see if the user was properly updated in the database
+    const updatedUserInfo = await getUserByID(userID);
+    expect(updatedUserInfo).toStrictEqual(tatiInfo);
+
+    // delete the user from the database
+    let deletedUser = await deleteUser(userID)
+    expect(deletedUser).toBe(true);
   });
 });
-
-describe('getUserByID', () => {
-  it('retrieves a user in the database by the given id', async () => {
-    // literally repeat the tests above but replace JUST the part where we retrieve userInfo with the function call
-  });
-
-  it('attempts to retrieve a nonexistent user by the given id but fails', async () => {
-    // similar format to above
-  });
-});
-
-describe('upsertUser', () => {
-  it('inserts a user into the database given a userInfo', async () => {
-    client.connect();
-    const user_id = 'jemin';
-
-    const query1 = {
-      name: 'insert-user',
-      text:
-        'INSERT INTO user_preferences (user_id, username, email, use_audio, use_video) VALUES ($1, $2, $3, $4, $5)',
-      values: [user_id, 'jem1', 'jemin@test.com', false, false],
-    };
-
-    await client.query(query1).then((err: any) => {
-      if (err) {
-        return false;
-      }
-    });
-
-    const query = {
-      name: 'update-user',
-      text:
-        'UPDATE user_preferences SET email=ISNULL($1, email), username=ISNULL($2, username), use_audio=ISNULL($3, use_audio), use_video=ISNULL($4, use_video) WHERE user_id = $5',
-      values: ['userInfo.email', 'username', true, true],
-    };
-
-    await client.query(query).then((err: any) => {
-      if (err) {
-        return false;
-      }
-    });
-
-    client.end();
-    it('updates a user in the database given a userInfo', async () => {
-      // similar format to above
-    });
-  });
-});
-
-describe('upsertTowns', () => {
-  it('inserts the town information of a user given a userInfo', async () => {
-    // literally repeat the tests above but replace JUST the part where we retrieve upsertTowns with the function call
-  });
-
-  it('updates the town information of a user given a userInfo', async () => {
-    // similar format to above
-  });
-});
-
-describe;

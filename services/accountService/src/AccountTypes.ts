@@ -6,8 +6,8 @@ export type JoinedTown = {
 
 export type UserInfo = {
   userID: string;
-  userEmail: string;
   username: string;
+  userEmail: string;
   useAudio: boolean;
   useVideo: boolean;
   towns: JoinedTown[];

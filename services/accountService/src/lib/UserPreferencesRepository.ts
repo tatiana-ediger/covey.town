@@ -1,3 +1,4 @@
+import { JoinedTown } from '../AccountTypes';
 const { Client } = require('pg');
 
 const client = new Client({
@@ -8,61 +9,78 @@ const client = new Client({
   },
 });
 
-export interface UserInfo {
-  user_id: string;
-  email?: string;
+// makes a connection to the database and maintains it until the program ends
+client.connect();
+
+export type UserInfo = {
+  userID: string;
   username?: string;
-  use_audio?: boolean;
-  use_video?: boolean;
-  JoinedTowns?: TownInfo[];
-}
-export interface TownInfo {
-  user_id: string;
-  map_id: string;
-  x_pos: number;
-  y_pos: number;
-}
+  userEmail?: string;
+  useAudio?: boolean;
+  useVideo?: boolean;
+  towns?: JoinedTown[];
+};
 
 /**
  * checks if a user already exists, if so, updates their account, otherwise creates a new user
  * RETURN type: {success: true/false}
  */
 export async function upsertUser(userInfo: UserInfo): Promise<boolean> {
-  const user_id = userInfo.user_id;
+  try {
+    const userIdQueryResult = await client.query(
+      `SELECT user_id FROM user_preferences WHERE user_id = '${userInfo.userID}';`,
+    );
+    
+    if (userIdQueryResult.rows.length > 0) {
+      const query = {
+        name: 'update-user',
+        text:
+          'UPDATE user_preferences SET username=COALESCE($1, username), email=COALESCE($2, email), use_audio=COALESCE($3, use_audio), use_video=COALESCE($4, use_video) WHERE user_id = $5',
+        values: [
+          userInfo.username,
+          userInfo.userEmail,
+          userInfo.useAudio,
+          userInfo.useVideo,
+          userInfo.userID,
+        ],
+      };
 
-  const userIdQuery = await client.query(
-    `SELECT user_id FROM user_preferences WHERE user_id='${user_id}';`,
-  );
+      await client.query(query);
+    } else {
+      const query = {
+        name: 'insert-user',
+        text:
+          'INSERT INTO user_preferences (user_id, username, email, use_audio, use_video) VALUES ($1, $2, $3, $4, $5)',
+        values: [
+          userInfo.userID,
+          userInfo.username,
+          userInfo.userEmail,
+          userInfo.useAudio,
+          userInfo.useVideo,
+        ],
+      };
 
-  if (user_id === userIdQuery) {
-    const query = {
-      name: 'update-user',
-      text:
-        'UPDATE user_preferences SET email=ISNULL($1, email), username=ISNULL($2, username), use_audio=ISNULL($3, use_audio), use_video=ISNULL($4, use_video) WHERE user_id = $5',
-      values: [userInfo.email, userInfo.username, userInfo.use_audio, userInfo.use_video],
-    };
-
-    await client.query(query).then((err: any) => {
-      if (err) {
-        return false;
-      }
-    });
-  } else {
-    const query = {
-      name: 'insert-user',
-      text:
-        'INSERT INTO user_preferences (user_id, username, email, use_audio, use_video) VALUES ($1, $2, $3, $4, $5)',
-      values: [user_id, userInfo.username, userInfo.email, userInfo.use_audio, userInfo.use_video],
-    };
-
-    await client.query(query).then((err: any) => {
-      if (err) {
-        return false;
-      }
-    });
+      await client.query(query);
+    }
+  } catch (err) {
+    console.log(err.toString());
+    return false;
   }
 
   return upsertTowns(userInfo);
+}
+
+/**
+ * Checks to see if the given TownList contains the town ID
+ */
+function containsTownID(joinedTownList: JoinedTown[], town: JoinedTown): Boolean {
+  let result = false; 
+  joinedTownList.forEach(t  => {
+    if (town.townID === t.townID) {
+      result = true;
+    }
+  });
+  return result;
 }
 
 /**
@@ -70,128 +88,128 @@ export async function upsertUser(userInfo: UserInfo): Promise<boolean> {
  * RETURN type: {success: true/false}
  */
 export async function upsertTowns(userInfo: UserInfo): Promise<boolean> {
-  const user_id = userInfo.user_id;
-  const townArray = userInfo.JoinedTowns;
+  try {
+    const userID = userInfo.userID;
+    const requestedTowns = userInfo.towns;
+    
+    let existingTowns: JoinedTown[] = [];
+    let toInsert: JoinedTown[] = [];
+    let toUpdate: JoinedTown[] = [];
 
-  const toInsert = new Array<TownInfo>();
-  const toUpdate = new Array<TownInfo>();
+    let res;
 
-  const townQuery = {
-    name: 'get-town',
-    text: 'SELECT $1, $2, $3, $4, $5 from towns WHERE user_id=$6',
-    values: ['user_id', 'server_id', 'map_id', 'x_pos', 'y_pos', user_id],
-  };
+    const townQuery = {
+      name: 'get-town',
+      text: 'SELECT town_id, position_x, position_y from towns WHERE user_id=$1',
+      values: [userID],
+    };
+    res = await client.query(townQuery);
 
-  await client.query(townQuery, (err: any, res: any) => {
-    if (err) {
-      console.error(err);
-      return;
-    }
-    for (let row of res.rows) {
-      let townInfo: TownInfo = {
-        user_id: row.user_id,
-        server_id: row.server_id,
-        map_id: row.map_id,
-        x_pos: row.x_pos,
-        y_pos: row.y_pos,
-      };
-      toUpdate.push(townInfo);
-    }
-  });
-
-  townArray?.forEach(town => {
-    if (!toUpdate.includes(town)) {
-      toInsert.push(town);
-    }
-  });
-
-  if (toInsert !== undefined && toInsert.length !== 0) {
-    toInsert.forEach(town => {
-      const query = {
-        name: 'insert-table',
-        text:
-          'INSERT INTO towns (user_id, server_id, map_id, x_pos, y_pos) VALUES ($1, $2, $3, $4, $5)',
-        values: [user_id, town.server_id, town.map_id, town.x_pos, town.y_pos],
-      };
-
-      client.query(query).then((err: any) => {
-        if (err) {
-          return false;
-        }
-      });
+    existingTowns = res.rows.map((row: any) => { 
+      return { townID: row.town_id, positionX: row.position_x, positionY: row.position_y } 
     });
-  }
 
-  if (toUpdate !== undefined && toUpdate.length !== 0) {
-    toInsert.forEach(town => {
-      const query = {
-        name: 'update-table',
-        text:
-          'UPDATE towns SET server_id=ISNULL($1, server_id), map_id=ISNULL($2, map_id), x_pos=ISNULL($3, x_pos), y_pos=ISNULL($4, y_pos) WHERE user_id = $5',
-        values: [town.server_id, town.map_id, town.x_pos, town.y_pos, user_id],
-      };
-
-      client.query(query).then((err: any) => {
-        if (err) {
-          return false;
-        }
-      });
+    requestedTowns?.forEach(town => {
+      if (containsTownID(existingTowns, town)) {
+        toUpdate.push(town);
+      } else {
+        toInsert.push(town);
+      }
     });
-  }
 
-  return true;
+    if (toInsert.length > 0) {
+      toInsert.forEach(async town => {
+        const query = {
+          name: 'insert-table',
+          text: 'INSERT INTO towns (town_id, user_id, position_x, position_y) VALUES ($1, $2, $3, $4)',
+          values: [town.townID, userID, town.positionX, town.positionY],
+        };
+
+        await client.query(query);
+      });
+    }
+
+    if (toUpdate.length > 0) {
+      toUpdate.forEach(async town => {
+        const query = {
+          name: 'update-table',
+          text:
+            'UPDATE towns SET position_x=COALESCE($1, position_x), position_y=COALESCE($2, position_y) WHERE user_id = $3 AND town_id = $4',
+          values: [town.positionX, town.positionY, userID, town.townID],
+        };
+
+        client.query(query);
+      });
+    }
+    return true;
+  } catch (err) {
+    return false;
+  }
 }
 
 /**
  * gets user info given a user_id
  * RETURN type: AccountTypes.User interface
  */
-export async function getUserByID(user_id: string): Promise<UserInfo> {
-  const townArray = new Array<TownInfo>();
-  let userInfo: UserInfo = { user_id: ' ' };
+export async function getUserByID(userID: string): Promise<UserInfo | undefined> {
+  try {
+    const query = {
+      name: 'GetUserByID',
+      text: `SELECT up.user_id,
+                    up.email,
+                    up.username,
+                    up.use_audio,
+                    up.use_video,
+                    t.town_id,
+                    t.position_x,
+                    t.position_y
+              FROM user_preferences up
+              LEFT JOIN towns t ON up.user_id = t.user_id
+              WHERE up.user_id = $1`,
+      values: [userID],
+    };
 
-  await client
-    .query(`SELECT * FROM towns WHERE user_id = '${user_id}';`)
-    .then((res: { rows: any }) => {
-      for (let row of res.rows) {
-        let townInfo: TownInfo = {
-          user_id: row.user_id,
-          server_id: row.server_id,
-          map_id: row.map_id,
-          x_pos: row.x_pos,
-          y_pos: row.y_pos,
+    let user: UserInfo | undefined = undefined;
+    const response = await client.query(query);
+    response.rows.forEach((row: any) => {
+      if (user === undefined) {
+        user = {
+          userID: row.user_id,
+          userEmail: row.email,
+          username: row.username,
+          useAudio: row.use_audio,
+          useVideo: row.use_video,
+          towns: [],
         };
-        townArray.push(townInfo);
+      }
+
+      if (row.town_id) {
+        user.towns?.push({
+          townID: row.town_id,
+          positionX: row.position_x,
+          positionY: row.position_y,
+        });
       }
     });
 
-  await client
-    .query(`SELECT * FROM user_preferences where user_id = '${user_id}';`)
-    .then((res: { rows: any }) => {
-      userInfo = {
-        user_id: res.rows[0].user_id,
-        email: res.rows[0].email,
-        username: res.rows[0].username,
-        use_audio: res.rows[0].use_audio,
-        use_video: res.rows[0].use_video,
-        JoinedTowns: [],
-      };
-    });
-
-  return userInfo;
+    return user;
+  } catch (err) {
+    return undefined;
+  }
 }
 
 /**
  * deletes a user, specified by their email
  * RETURN type: {success: true/false}
  */
-export async function deleteUser(user_id: string): Promise<boolean> {
+export async function deleteUser(userID: string): Promise<boolean> {
   try {
-    await client.query(`DELETE FROM user_preferences WHERE user_id = '${user_id}';`);
-    await client.query(`DELETE FROM towns WHERE user_id = '${user_id}';`);
+    await client.query(`DELETE FROM towns WHERE user_id = '${userID}';`);
+    await client.query(`DELETE FROM user_preferences WHERE user_id = '${userID}';`);
 
     return true;
-  } catch {
+  } catch (err) {
     return false;
   }
 }
+  
