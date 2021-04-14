@@ -22,7 +22,7 @@ export default function addTownRoutes(http: Server, app: Express): io.Server {
         userName: req.body.userName,
         coveyTownID: req.body.coveyTownID,
         isLoggedIn: req.body.isLoggedIn,
-        userID: req.body.userID
+        userID: req.body.userID,
       });
       res.status(StatusCodes.OK)
         .json(result);

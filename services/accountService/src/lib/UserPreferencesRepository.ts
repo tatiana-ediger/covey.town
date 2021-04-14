@@ -22,138 +22,59 @@ export type SavedUserInfoRequest = {
   towns?: JoinedTown[];
 };
 
-/* 
-export interface SaveUserRequest {
-  userEmail: string;
-  username?: string;
-  useAudio?: boolean;
-  useVideo?: boolean;
-  towns?: JoinedTown[];
-}
-*/
-
-/**
- * Checks to see if the given TownList contains the town ID
- */
-function containsTownID(joinedTownList: JoinedTown[], town: JoinedTown): boolean {
-  let result = false;
-  joinedTownList.forEach(t => {
-    if (town.townID === t.townID) {
-      result = true;
-    }
-  });
-  return result;
-}
-
-/**
- * checks if a town exists with a user already joined, if so, updates the town info, otherwise adds to the town info list
- * RETURN type: {success: true/false}
- */
-export async function upsertTowns(userInfo: SavedUserInfoRequest): Promise<boolean> {
-  try {
-    const requestedTowns = userInfo.towns;
-
-    let existingTowns: JoinedTown[] = [];
-    const toInsert: JoinedTown[] = [];
-    const toUpdate: JoinedTown[] = [];
-
-    const townQuery = {
-      name: 'get-town',
-      text: 'SELECT town_id, position_x, position_y from towns WHERE user_id=$1',
-      values: [userInfo.userID],
-    };
-    const res = await client.query(townQuery);
-
-    existingTowns = res.rows.map((row: any) => ({
-      townID: row.town_id,
-      positionX: row.position_x,
-      positionY: row.position_y,
-    }));
-
-    requestedTowns?.forEach(town => {
-      if (containsTownID(existingTowns, town)) {
-        toUpdate.push(town);
-      } else {
-        toInsert.push(town);
-      }
-    });
-
-    if (toInsert.length > 0) {
-      toInsert.forEach(async town => {
-        const query = {
-          name: 'insert-table',
-          text:
-            'INSERT INTO towns (town_id, user_id, position_x, position_y) VALUES ($1, $2, $3, $4)',
-          values: [town.townID, userInfo.userID, town.positionX, town.positionY],
-        };
-
-        await client.query(query);
-      });
-    }
-
-    if (toUpdate.length > 0) {
-      toUpdate.forEach(async town => {
-        const query = {
-          name: 'update-table',
-          text:
-            'UPDATE towns SET position_x=COALESCE($1, position_x), position_y=COALESCE($2, position_y) WHERE user_id = $3 AND town_id = $4',
-          values: [town.positionX, town.positionY, userInfo.userID, town.townID],
-        };
-
-        client.query(query);
-      });
-    }
-    return true;
-  } catch (err) {
-    return false;
-  }
-}
-
 /**
  * checks if a user already exists, if so, updates their account, otherwise creates a new user
  * RETURN type: {success: true/false}
  */
 export async function upsertUser(userInfo: SavedUserInfoRequest): Promise<boolean> {
+  // console.log(userInfo.userID);
+  // console.log('doing things');
+  // const query = {
+  //   name: 'addUqTownConstraint',
+  //   text: `ALTER TABLE towns ADD CONSTRAINT uq_town UNIQUE(town_id, user_id);`
+  // };
+  // await client.query(query);
+  // return true;
   try {
-    const userIdQueryResult = await client.query(
-      `SELECT user_id FROM user_preferences WHERE user_id = '${userInfo.userID}';`,
-    );
+    const userPreferencesQuery = {
+      name: 'UpsertUserPreferences',
+      text: `INSERT INTO user_preferences AS up (user_id, email, username, use_audio, use_video)
+            VALUES ($1, $2, COALESCE($3, ''), COALESCE($4, false), COALESCE($5, false))
+            ON CONFLICT ON CONSTRAINT user_preferences_pkey
+            DO
+              UPDATE SET
+                username = COALESCE($3, up.username),
+                use_audio = COALESCE(false, up.use_audio),
+                use_video = COALESCE(false, up.use_video)
+              WHERE up.user_id = 'user234';`,
+      values: [userInfo.userID, userInfo.email, userInfo.username, userInfo.useAudio, userInfo.useVideo]
+    };
 
-    if (userIdQueryResult.rows.length > 0) {
-      const query = {
-        name: 'update-user',
-        text:
-          'UPDATE user_preferences SET username=COALESCE($1, username), email=COALESCE($2, email), use_audio=COALESCE($3, use_audio), use_video=COALESCE($4, use_video) WHERE user_id = $5',
-        values: [
-          userInfo.username,
-          userInfo.email,
-          userInfo.useAudio,
-          userInfo.useVideo,
-          userInfo.userID,
-        ],
-      };
+    await client.query(userPreferencesQuery);
 
-      await client.query(query);
-    } else {
-      const query = {
-        name: 'insert-user',
-        text:
-          'INSERT INTO user_preferences (user_id, username, email, use_audio, use_video) VALUES ($1, $2, $3, $4, $5)',
-        values: [
-          userInfo.userID,
-          userInfo.username,
-          userInfo.email,
-          userInfo.useAudio,
-          userInfo.useVideo,
-        ],
+    userInfo.towns?.forEach(async town => {
+      const townsQuery = {
+        name: 'UpsertTowns',
+        text: `INSERT INTO towns AS t (user_id, town_id, position_x, position_y)
+              VALUES ($1, $2, $3, $4)
+              ON CONFLICT ON CONSTRAINT uq_town
+              DO
+                UPDATE SET
+                  position_x = $3,
+                  position_y = $4
+                WHERE t.user_id = $1 AND t.town_id = $2;`,
+        values: [userInfo.userID, town.townID, town.positionX, town.positionY]
       };
-      await client.query(query);
-    }
+      console.log('TOWN:');
+      console.log(town);
+      await client.query(townsQuery);
+    });
+
+    // Promise.all(townsQueries);
+    return true;
   } catch (err) {
     return false;
   }
-
-  return upsertTowns(userInfo);
 }
 
 /**

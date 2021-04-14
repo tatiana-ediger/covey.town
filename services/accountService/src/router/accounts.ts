@@ -3,7 +3,7 @@ import { Express } from 'express';
 import { Server } from 'http';
 import { StatusCodes } from 'http-status-codes';
 import io from 'socket.io';
-import { saveUserHandler, getUserHandler } from '../requestHandlers/AccountRequestHandlers';
+import { saveUserHandler, getUserHandler, SaveUserRequest } from '../requestHandlers/AccountRequestHandlers';
 
 export default function addAccountRoutes(http: Server, app: Express): io.Server {
   /*
@@ -11,14 +11,14 @@ export default function addAccountRoutes(http: Server, app: Express): io.Server 
    */
   app.post('/user', BodyParser.json(), async (req, res) => {
     try {
-      const result = await saveUserHandler({
-        userID: req.body.userID,
-        email: req.body.email,
-        username: req.body.username,
-        useAudio: req.body.useAudio,
-        useVideo: req.body.useVideo,
-        towns: req.body.towns,
-      });
+      const saveRequest = req.body as SaveUserRequest;
+      console.log(saveRequest);
+      if (req.body.email !== undefined) {
+        console.log('hello');
+        console.log(`email: '${req.body.email}'`);
+      }
+
+      const result = await saveUserHandler(saveRequest);
       res.status(StatusCodes.OK).json(result);
     } catch (err) {
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
