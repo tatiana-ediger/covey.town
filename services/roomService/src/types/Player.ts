@@ -18,7 +18,7 @@ export default class Player {
   /** Determines whether the player is logged into Covey.Town or not */
   private readonly _isLoggedIn: boolean;
 
-  constructor(userName: string, isLoggedIn: boolean, userId?: string) {
+  constructor(userName: string, isLoggedIn: boolean = false, userId?: string) {
     this.location = {
       x: 0,
       y: 0,
