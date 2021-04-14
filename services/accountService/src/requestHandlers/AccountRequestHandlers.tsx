@@ -1,40 +1,42 @@
-import { JoinedTown } from '../AccountTypes';
-import UserPreferencesRepository from '../lib/UserPreferencesRepository';
+import { JoinedTown, UserInfo } from '../AccountTypes';
+import { getUserByID, upsertUser, SavedUserInfoRequest } from '../lib/UserPreferencesRepository';
 
 /**
  * Payload sent by client to save a user in Covey.Town
  */
 export interface SaveUserRequest {
-  userEmail: string;
-  userName?: string;
+  userID: string;
+  email: string;
+  username?: string;
   useAudio?: boolean;
   useVideo?: boolean;
+  towns?: JoinedTown[];
 }
 
 /**
  * Response from the server for a save user request
  */
 export interface SaveUserResponse {
-  userId: string;
+  userID: string;
 }
 
 /**
  * Payload sent by client to request information for a user's email
  */
 export interface GetUserRequest {
-  userId: string;
+  userID: string;
 }
 
 /**
  * Response from the server for a get user request
  */
 export interface GetUserResponse {
-  userId: string;
-  userEmail: string;
-  userName: string;
+  userID: string;
+  email: string;
+  username: string;
   useAudio: boolean;
   useVideo: boolean;
-  visitedServers: JoinedTown[];
+  towns: JoinedTown[];
 }
 
 /**
@@ -73,7 +75,7 @@ export interface ResponseEnvelope<T> {
 export async function saveUserHandler(
   requestData: SaveUserRequest,
 ): Promise<ResponseEnvelope<Record<string, null>>> {
-  if (requestData.userEmail.length === 0) {
+  if (requestData.email.length === 0) {
     return {
       isOK: false,
       message: 'User email must be specified when saving a user',
@@ -82,13 +84,12 @@ export async function saveUserHandler(
 
   // code to retrieve a user id by calling auth0 api
 
-  const upsertUserResponse = await UserPreferencesRepository.upsertUser(requestData);
-  const success = upsertUserResponse.success;
+  const response = await upsertUser(requestData as SavedUserInfoRequest);
 
   return {
-    isOK: success,
-    message: !success
-      ? `Failed to save user preferences for email: ${requestData.userEmail}`
+    isOK: response,
+    message: !response
+      ? `Failed to save user preferences for email: ${requestData.email}`
       : undefined,
   };
 }
@@ -96,38 +97,24 @@ export async function saveUserHandler(
 export async function getUserHandler(
   requestData: GetUserRequest,
 ): Promise<ResponseEnvelope<GetUserResponse>> {
-  if (requestData.userEmail.length == 0) {
+  if (requestData.userID.length == 0) {
     return {
       isOK: false,
-      message: 'User email must be specified when retrieving user details',
+      message: 'User id must be specified when retrieving user details',
     };
   }
 
-  const getUserResponse = await UserPreferencesRepository.getUserInfo(requestData.userEmail);
-  const success = getUserResponse.success;
+  const user = await getUserByID(requestData.userID);
 
-  if (success) {
+  if (user) {
     return {
       isOK: true,
-      response: getUserResponse,
+      response: user as UserInfo,
     };
   }
 
   return {
     isOK: false,
-    message: `Failed to get user information for email: ${requestData.userEmail}`,
-  };
-}
-
-export async function deleteUserHandler(
-  requestData: DeleteUserRequest,
-): Promise<ResponseEnvelope<Record<string, null>>> {
-  const deleteUser = await UserPreferencesRepository.deleteUser(requestData.userEmail);
-
-  const success = deleteUser.success;
-  return {
-    isOK: success,
-    response: {},
-    message: !success ? `Failed to delete user for email: ${requestData.userEmail}` : undefined,
+    message: `Failed to get user information for id: ${requestData.userID}`,
   };
 }

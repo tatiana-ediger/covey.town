@@ -39,13 +39,6 @@ export interface GetUserResponse {
 }
 
 /**
- * Payload sent by client to delete all information stored for a user
- */
-export interface DeleteUserRequest {
-  userID: string;
-}
-
-/**
  * Envelope that wraps any response from the server
  */
 export interface ResponseEnvelope<T> {
@@ -95,12 +88,5 @@ export default class AccountsServiceClient {
       `/user/${requestData.userID}`,
     );
     return AccountsServiceClient.unwrapOrThrowError(responseWrapper, true);
-  }
-
-  async deleteUser(requestData: DeleteUserRequest): Promise<void> {
-    const responseWrapper = await this._axios.delete<ResponseEnvelope<void>>(
-      `/user/${requestData.userID}`,
-    );
-    return AccountsServiceClient.unwrapOrThrowError(responseWrapper);
   }
 }

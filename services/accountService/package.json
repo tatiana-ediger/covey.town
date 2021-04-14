@@ -1,7 +1,7 @@
 {
-  "name": "covey-town-roomService",
+  "name": "covey-town-accountService",
   "version": "1.0.0",
-  "description": "Backend service for processing Covey.Town room requests",
+  "description": "Backend service for processing Covey.Town account requests",
   "main": "server.js",
   "repository": {
     "type": "git",
@@ -52,6 +52,7 @@
     "eslint": "^7.18.0",
     "express": "^4.17.1",
     "http-status-codes": "^2.1.4",
+    "lint": "^0.7.0",
     "nanoid": "^3.1.20",
     "pg": "^8.5.1",
     "socket.io": "^3.0.4",

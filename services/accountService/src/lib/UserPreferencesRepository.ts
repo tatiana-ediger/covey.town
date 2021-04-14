@@ -13,14 +13,24 @@ const client = new Client({
 // makes a connection to the database and maintains it until the program ends
 client.connect();
 
-export type UserInfo = {
+export type SavedUserInfoRequest = {
   userID: string;
   username?: string;
-  userEmail?: string;
+  email?: string;
   useAudio?: boolean;
   useVideo?: boolean;
   towns?: JoinedTown[];
 };
+
+/* 
+export interface SaveUserRequest {
+  userEmail: string;
+  username?: string;
+  useAudio?: boolean;
+  useVideo?: boolean;
+  towns?: JoinedTown[];
+}
+*/
 
 /**
  * Checks to see if the given TownList contains the town ID
@@ -39,7 +49,7 @@ function containsTownID(joinedTownList: JoinedTown[], town: JoinedTown): boolean
  * checks if a town exists with a user already joined, if so, updates the town info, otherwise adds to the town info list
  * RETURN type: {success: true/false}
  */
-export async function upsertTowns(userInfo: UserInfo): Promise<boolean> {
+export async function upsertTowns(userInfo: SavedUserInfoRequest): Promise<boolean> {
   try {
     const requestedTowns = userInfo.towns;
 
@@ -103,7 +113,7 @@ export async function upsertTowns(userInfo: UserInfo): Promise<boolean> {
  * checks if a user already exists, if so, updates their account, otherwise creates a new user
  * RETURN type: {success: true/false}
  */
-export async function upsertUser(userInfo: UserInfo): Promise<boolean> {
+export async function upsertUser(userInfo: SavedUserInfoRequest): Promise<boolean> {
   try {
     const userIdQueryResult = await client.query(
       `SELECT user_id FROM user_preferences WHERE user_id = '${userInfo.userID}';`,
@@ -116,7 +126,7 @@ export async function upsertUser(userInfo: UserInfo): Promise<boolean> {
           'UPDATE user_preferences SET username=COALESCE($1, username), email=COALESCE($2, email), use_audio=COALESCE($3, use_audio), use_video=COALESCE($4, use_video) WHERE user_id = $5',
         values: [
           userInfo.username,
-          userInfo.userEmail,
+          userInfo.email,
           userInfo.useAudio,
           userInfo.useVideo,
           userInfo.userID,
@@ -132,7 +142,7 @@ export async function upsertUser(userInfo: UserInfo): Promise<boolean> {
         values: [
           userInfo.userID,
           userInfo.username,
-          userInfo.userEmail,
+          userInfo.email,
           userInfo.useAudio,
           userInfo.useVideo,
         ],
@@ -150,7 +160,7 @@ export async function upsertUser(userInfo: UserInfo): Promise<boolean> {
  * gets user info given a user_id
  * RETURN type: AccountTypes.User interface
  */
-export async function getUserByID(userID: string): Promise<UserInfo | undefined> {
+export async function getUserByID(userID: string): Promise<SavedUserInfoRequest | undefined> {
   try {
     const query = {
       name: 'GetUserByID',
@@ -168,13 +178,13 @@ export async function getUserByID(userID: string): Promise<UserInfo | undefined>
       values: [userID],
     };
 
-    let user: UserInfo | undefined;
+    let user: SavedUserInfoRequest | undefined;
     const response = await client.query(query);
     response.rows.forEach((row: any) => {
       if (user === undefined) {
         user = {
           userID: row.user_id,
-          userEmail: row.email,
+          email: row.email,
           username: row.username,
           useAudio: row.use_audio,
           useVideo: row.use_video,

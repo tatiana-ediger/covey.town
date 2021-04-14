@@ -110,7 +110,7 @@ export async function townJoinHandler(requestData: TownJoinRequest): Promise<Res
       message: 'Error: No such town',
     };
   }
-  //TODO: also need to pass userID
+  // TODO: also need to pass userID
   const newPlayer = new Player(requestData.userName, requestData.isLoggedIn, requestData.userID);
   const newSession = await coveyTownController.addPlayer(newPlayer);
   assert(newSession.videoToken);
