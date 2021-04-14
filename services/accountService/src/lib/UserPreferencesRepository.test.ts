@@ -10,6 +10,7 @@ import {
  * Connection to the database used for the tests
  */
 const { Client } = require('pg');
+
 const testClient = new Client({
   connectionString:
     'postgres://kisvchxzkztlyx:02c7828881c5e71290f509916361926b80923b88c0dddeaf170cb111cdbb4c51@ec2-18-204-101-137.compute-1.amazonaws.com:5432/d46idgb6list1r',
@@ -111,15 +112,15 @@ describe('upsertUser, getUserById, deleteUser', () => {
   it('inserts, retrieve, and deletes a user (that has no joined town) when given a user in the database', async () => {
     const userID = 'kyle';
     // Inserts the user into the user_preferences table of the database
-    let insertUser = await upsertUser(kyleInfo);
+    const insertUser = await upsertUser(kyleInfo);
     expect(insertUser).toBe(true);
     
     // Checks to see if the user was properly added to the database
-    let userInfo = await getUserByID(userID);
+    const userInfo = await getUserByID(userID);
     expect(userInfo).toStrictEqual(kyleInfo);
 
     // delete the user from the database
-    let result = await deleteUser(userID);
+    const result = await deleteUser(userID);
     expect(result).toBe(true);
   });
 
@@ -142,7 +143,7 @@ describe('upsertUser, getUserById, deleteUser', () => {
     expect(updatedUserInfo).toStrictEqual(jeminInfoUpdate);
 
     // delete the user from the database
-    let deletedUser = await deleteUser(userID)
+    const deletedUser = await deleteUser(userID)
     expect(deletedUser).toBe(true);
   });
 
@@ -165,7 +166,7 @@ describe('upsertUser, getUserById, deleteUser', () => {
     expect(updatedUserInfo).toStrictEqual(johnInfoUpdate);
 
     // delete the user from the database
-    let deletedUser = await deleteUser(userID)
+    const deletedUser = await deleteUser(userID)
     expect(deletedUser).toBe(true);
   });
 
@@ -188,7 +189,7 @@ describe('upsertUser, getUserById, deleteUser', () => {
     expect(updatedUserInfo).toStrictEqual(tatiInfo);
 
     // delete the user from the database
-    let deletedUser = await deleteUser(userID)
+    const deletedUser = await deleteUser(userID)
     expect(deletedUser).toBe(true);
   });
 });

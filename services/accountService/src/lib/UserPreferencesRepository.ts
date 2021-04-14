@@ -1,4 +1,5 @@
 import { JoinedTown } from '../AccountTypes';
+
 const { Client } = require('pg');
 
 const client = new Client({
@@ -22,6 +23,83 @@ export type UserInfo = {
 };
 
 /**
+ * Checks to see if the given TownList contains the town ID
+ */
+function containsTownID(joinedTownList: JoinedTown[], town: JoinedTown): boolean {
+  let result = false;
+  joinedTownList.forEach(t => {
+    if (town.townID === t.townID) {
+      result = true;
+    }
+  });
+  return result;
+}
+
+/**
+ * checks if a town exists with a user already joined, if so, updates the town info, otherwise adds to the town info list
+ * RETURN type: {success: true/false}
+ */
+export async function upsertTowns(userInfo: UserInfo): Promise<boolean> {
+  try {
+    const requestedTowns = userInfo.towns;
+
+    let existingTowns: JoinedTown[] = [];
+    const toInsert: JoinedTown[] = [];
+    const toUpdate: JoinedTown[] = [];
+
+    const townQuery = {
+      name: 'get-town',
+      text: 'SELECT town_id, position_x, position_y from towns WHERE user_id=$1',
+      values: [userInfo.userID],
+    };
+    const res = await client.query(townQuery);
+
+    existingTowns = res.rows.map((row: any) => ({
+      townID: row.town_id,
+      positionX: row.position_x,
+      positionY: row.position_y,
+    }));
+
+    requestedTowns?.forEach(town => {
+      if (containsTownID(existingTowns, town)) {
+        toUpdate.push(town);
+      } else {
+        toInsert.push(town);
+      }
+    });
+
+    if (toInsert.length > 0) {
+      toInsert.forEach(async town => {
+        const query = {
+          name: 'insert-table',
+          text:
+            'INSERT INTO towns (town_id, user_id, position_x, position_y) VALUES ($1, $2, $3, $4)',
+          values: [town.townID, userInfo.userID, town.positionX, town.positionY],
+        };
+
+        await client.query(query);
+      });
+    }
+
+    if (toUpdate.length > 0) {
+      toUpdate.forEach(async town => {
+        const query = {
+          name: 'update-table',
+          text:
+            'UPDATE towns SET position_x=COALESCE($1, position_x), position_y=COALESCE($2, position_y) WHERE user_id = $3 AND town_id = $4',
+          values: [town.positionX, town.positionY, userInfo.userID, town.townID],
+        };
+
+        client.query(query);
+      });
+    }
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
+/**
  * checks if a user already exists, if so, updates their account, otherwise creates a new user
  * RETURN type: {success: true/false}
  */
@@ -30,7 +108,7 @@ export async function upsertUser(userInfo: UserInfo): Promise<boolean> {
     const userIdQueryResult = await client.query(
       `SELECT user_id FROM user_preferences WHERE user_id = '${userInfo.userID}';`,
     );
-    
+
     if (userIdQueryResult.rows.length > 0) {
       const query = {
         name: 'update-user',
@@ -59,92 +137,13 @@ export async function upsertUser(userInfo: UserInfo): Promise<boolean> {
           userInfo.useVideo,
         ],
       };
-
       await client.query(query);
     }
   } catch (err) {
-    console.log(err.toString());
     return false;
   }
 
   return upsertTowns(userInfo);
-}
-
-/**
- * Checks to see if the given TownList contains the town ID
- */
-function containsTownID(joinedTownList: JoinedTown[], town: JoinedTown): Boolean {
-  let result = false; 
-  joinedTownList.forEach(t  => {
-    if (town.townID === t.townID) {
-      result = true;
-    }
-  });
-  return result;
-}
-
-/**
- * checks if a town exists with a user already joined, if so, updates the town info, otherwise adds to the town info list
- * RETURN type: {success: true/false}
- */
-export async function upsertTowns(userInfo: UserInfo): Promise<boolean> {
-  try {
-    const userID = userInfo.userID;
-    const requestedTowns = userInfo.towns;
-    
-    let existingTowns: JoinedTown[] = [];
-    let toInsert: JoinedTown[] = [];
-    let toUpdate: JoinedTown[] = [];
-
-    let res;
-
-    const townQuery = {
-      name: 'get-town',
-      text: 'SELECT town_id, position_x, position_y from towns WHERE user_id=$1',
-      values: [userID],
-    };
-    res = await client.query(townQuery);
-
-    existingTowns = res.rows.map((row: any) => { 
-      return { townID: row.town_id, positionX: row.position_x, positionY: row.position_y } 
-    });
-
-    requestedTowns?.forEach(town => {
-      if (containsTownID(existingTowns, town)) {
-        toUpdate.push(town);
-      } else {
-        toInsert.push(town);
-      }
-    });
-
-    if (toInsert.length > 0) {
-      toInsert.forEach(async town => {
-        const query = {
-          name: 'insert-table',
-          text: 'INSERT INTO towns (town_id, user_id, position_x, position_y) VALUES ($1, $2, $3, $4)',
-          values: [town.townID, userID, town.positionX, town.positionY],
-        };
-
-        await client.query(query);
-      });
-    }
-
-    if (toUpdate.length > 0) {
-      toUpdate.forEach(async town => {
-        const query = {
-          name: 'update-table',
-          text:
-            'UPDATE towns SET position_x=COALESCE($1, position_x), position_y=COALESCE($2, position_y) WHERE user_id = $3 AND town_id = $4',
-          values: [town.positionX, town.positionY, userID, town.townID],
-        };
-
-        client.query(query);
-      });
-    }
-    return true;
-  } catch (err) {
-    return false;
-  }
 }
 
 /**
@@ -169,7 +168,7 @@ export async function getUserByID(userID: string): Promise<UserInfo | undefined>
       values: [userID],
     };
 
-    let user: UserInfo | undefined = undefined;
+    let user: UserInfo | undefined;
     const response = await client.query(query);
     response.rows.forEach((row: any) => {
       if (user === undefined) {
@@ -212,4 +211,3 @@ export async function deleteUser(userID: string): Promise<boolean> {
     return false;
   }
 }
-  
