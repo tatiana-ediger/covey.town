@@ -36,9 +36,9 @@ export async function upsertUser(userInfo: SavedUserInfoRequest): Promise<boolea
             DO
               UPDATE SET
                 username = COALESCE($3, up.username),
-                use_audio = COALESCE(false, up.use_audio),
-                use_video = COALESCE(false, up.use_video)
-              WHERE up.user_id = 'user234';`,
+                use_audio = COALESCE($4, up.use_audio),
+                use_video = COALESCE($5, up.use_video)
+              WHERE up.user_id = $1;`,
       values: [userInfo.userID, userInfo.email, userInfo.username, userInfo.useAudio, userInfo.useVideo]
     };
     
@@ -62,7 +62,7 @@ export async function upsertUser(userInfo: SavedUserInfoRequest): Promise<boolea
     });
 
     Promise.all(townsQueries);
-    
+
     return true;
   } catch (err) {
     return false;

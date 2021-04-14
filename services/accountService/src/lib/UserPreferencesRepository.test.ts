@@ -1,9 +1,8 @@
-import { JoinedTown } from '../AccountTypes';
+import { JoinedTown, UserInfo } from '../AccountTypes';
 import {
   deleteUser,
   getUserByID,
   upsertUser,
-  UserInfo,
 } from './UserPreferencesRepository';
 
 /**
@@ -48,7 +47,7 @@ const town3: JoinedTown = {
 const jeminInfo: UserInfo = {
   userID: 'jemin',
   username: 'jem1',
-  userEmail: 'jemin@test.com',
+  email: 'jemin@test.com',
   useAudio: false,
   useVideo: false,
   towns: [],
@@ -57,7 +56,7 @@ const jeminInfo: UserInfo = {
 const jeminInfoUpdate: UserInfo = {
   userID: 'jemin',
   username: 'jem1',
-  userEmail: 'jemin@test.com',
+  email: 'jemin@test.com',
   useAudio: false,
   useVideo: false,
   towns: [town1],
@@ -66,7 +65,7 @@ const jeminInfoUpdate: UserInfo = {
 const kyleInfo: UserInfo = {
   userID: 'kyle',
   username: 'kyle1',
-  userEmail: 'kyle@test.com',
+  email: 'kyle@test.com',
   useAudio: true,
   useVideo: false,
   towns: [],
@@ -75,7 +74,7 @@ const kyleInfo: UserInfo = {
 const johnInfo: UserInfo = {
   userID: 'john',
   username: 'john1',
-  userEmail: 'john@test.com',
+  email: 'john@test.com',
   useAudio: false,
   useVideo: true,
   towns: [town1, town2],
@@ -84,7 +83,7 @@ const johnInfo: UserInfo = {
 const johnInfoUpdate: UserInfo = {
   userID: 'john',
   username: 'john1',
-  userEmail: 'john@test.com',
+  email: 'john@test.com',
   useAudio: true,
   useVideo: true,
   towns: [town3, town1, town2],
@@ -93,7 +92,7 @@ const johnInfoUpdate: UserInfo = {
 const tatiInfo: UserInfo = {
   userID: 'tatiana',
   username: 'tati1',
-  userEmail: 'tati@test.com',
+  email: 'tati@test.com',
   useAudio: true,
   useVideo: true,
   towns: [town3],
@@ -102,7 +101,7 @@ const tatiInfo: UserInfo = {
 const tatiInfoUpdate: UserInfo = {
   userID: 'tatiana',
   username: 'tati1',
-  userEmail: 'tati@test.com',
+  email: 'tati@test.com',
   useAudio: true,
   useVideo: true,
   towns: [],
@@ -149,13 +148,14 @@ describe('upsertUser, getUserById, deleteUser', () => {
 
   it('inserts, updates, retrieve, and deletes a user (that has joined town) when given a user in the database', async () => {
     const userID = 'john';
+
     // Inserts the user into the user_preferences table of the database
     const insertUser = await upsertUser(johnInfo);
     expect(insertUser).toBe(true);
 
     // Checks to see if the user was properly added to the database
     const userInfo = await getUserByID(userID);
-    expect(userInfo).toStrictEqual(johnInfo)
+    expect(userInfo).toStrictEqual(johnInfo);
 
     // Updates the given user
     const updateUser = await upsertUser(johnInfoUpdate); 
@@ -166,7 +166,7 @@ describe('upsertUser, getUserById, deleteUser', () => {
     expect(updatedUserInfo).toStrictEqual(johnInfoUpdate);
 
     // delete the user from the database
-    const deletedUser = await deleteUser(userID)
+    const deletedUser = await deleteUser(userID);
     expect(deletedUser).toBe(true);
   });
 
