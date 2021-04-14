@@ -7,30 +7,38 @@ import { TownJoinResponse } from '../../../../../classes/TownsServiceClient';
 import TownSelection from '../../../../Login/TownSelection';
 import { UserInfo } from '../../../../../CoveyTypes';
 import { useAuth0 } from '@auth0/auth0-react';
+import { SaveUserRequest } from '../../../../../classes/AccountsServiceClient';
+import useCoveyAppState from '../../../../../hooks/useCoveyAppState';
 
 export default function PreJoinScreens(props: { doLogin: (initData: TownJoinResponse) => Promise<boolean>; setMediaError?(error: Error): void }) {
   const auth0 = useAuth0();
+  const { accountApiClient } = useCoveyAppState();
 
-  const loggedOutUser = { userID: '', email: '', username: '', useAudio: false, useVideo: false, maps: [] };
-  const getData = { userID: 'test123', username: 'testuser123', email: 'testuser123@email.com', useAudio: true, useVideo: false, maps: [] };
+  const loggedOutUser = { userID: '', email: '', username: '', useAudio: false, useVideo: false, towns: [] };
   const [loggedIn, setLoggedIn] = useState<boolean>(auth0.isAuthenticated);
-  const [userInfo, setUserInfo] = useState<UserInfo>(auth0.isAuthenticated ? getData : loggedOutUser);
+  const [userInfo, setUserInfo] = useState<UserInfo>(loggedOutUser);
 
   if (auth0.isAuthenticated !== loggedIn) {
     setLoggedIn(auth0.isAuthenticated);
   }
 
+  async function updateUserInfo(request: SaveUserRequest) {
+    try {
+      // const getData = { userID: 'test123', username: 'testuser123', email: 'testuser123@email.com', useAudio: true, useVideo: false, towns: [] };
+      await accountApiClient.saveUser(request);
+      const getResponse = await accountApiClient.getUser({ userID: request.userID });
+      setUserInfo(getResponse as UserInfo);
+    } catch (err) {
+      console.log('hello??');
+      // Do nothing i guess?
+    }
+  }
+
   useEffect(() => {
     if (loggedIn) {
-      const userID = auth0.user.sub;
-      // TODO actually call API
-      // MOCK API CALL for get RETURNS:
-      const saveData = { success: true }
-      const getData = { userID: 'test123', username: 'testuser123', email: 'testuser123@email.com', useAudio: true, useVideo: true, maps: [] }
-      setUserInfo({ userID: getData.userID, email: getData.email, username: getData.username, useAudio: getData.useAudio, useVideo: getData.useVideo, maps: getData.maps });
+      updateUserInfo({ userID: auth0.user.sub, email: auth0.user.email });
     }
     else {
-      // set to default value
       setUserInfo(loggedOutUser);
     }
   }, [loggedIn]);

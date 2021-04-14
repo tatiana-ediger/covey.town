@@ -2,9 +2,9 @@ import assert from 'assert';
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 
 export type JoinedTown = {
-  townID: string;
-  positionX: number;
-  positionY: number;
+  townID: string,
+  locationX: number,
+  locationY: number,
 };
 
 /**
@@ -12,10 +12,11 @@ export type JoinedTown = {
  */
 export interface SaveUserRequest {
   userID: string;
-  userEmail?: string;
-  userName?: string;
+  email?: string;
+  username?: string;
   useAudio?: boolean;
   useVideo?: boolean;
+  towns?: JoinedTown[];
 }
 
 /**
@@ -25,11 +26,23 @@ export interface GetUserRequest {
   userID: string;
 }
 
+
+/**
+ * export type UserInfo = {
+  userID: string,
+  email: string,
+  username: string,
+  useAudio: boolean,
+  useVideo: boolean,
+  towns: JoinedTownInfo[],
+};
+ */
+
 /**
  * Response from the server for a get user request
  */
 export interface GetUserResponse {
-  userId: string;
+  userID: string;
   email: string;
   username: string;
   useAudio: boolean;

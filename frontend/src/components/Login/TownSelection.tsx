@@ -38,7 +38,7 @@ export default function TownSelection({ username, doLogin }: TownSelectionProps)
   const [townIDToJoin, setTownIDToJoin] = useState<string>('');
   const [currentPublicTowns, setCurrentPublicTowns] = useState<CoveyTownInfo[]>();
   const { connect } = useVideoContext();
-  const { apiClient } = useCoveyAppState();
+  const { apiClient, accountApiClient } = useCoveyAppState();
   const toast = useToast();
 
   const updateTownListings = useCallback(() => {
@@ -93,13 +93,14 @@ export default function TownSelection({ username, doLogin }: TownSelectionProps)
   }, [doLogin, userName, connect, toast]);
 
   const handleSaveUsername = () => {
-    // TODO call api to saveUser!
+    // TODO call api
     try {
       toast({
         title: 'Successfully saved username!',
         description: 'Any time you log into Covey.Town in the future, you can click the \'Saved Name\' button to apply these settings.',
         status: 'success',
       });
+
     } catch (err) {
       toast({
         title: 'Unable to connect to Account Service',
