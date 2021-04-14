@@ -10,7 +10,7 @@ interface LoginProps {
 
 export default function Login({ doLogin }: LoginProps): JSX.Element {
   const [mediaError, setMediaError] = useState<Error>();
-
+  
   return (
     <>
       <MediaErrorSnackbar error={mediaError} dismissError={() => setMediaError(undefined)} />

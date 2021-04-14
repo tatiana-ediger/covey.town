@@ -10,7 +10,7 @@ class CoveyGameScene extends Phaser.Scene {
     sprite: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody, label: Phaser.GameObjects.Text
   };
 
-  private id?: string;
+  private myPlayerID: string;
 
   private players: Player[] = [];
 
@@ -33,10 +33,11 @@ class CoveyGameScene extends Phaser.Scene {
 
   private emitMovement: (loc: UserLocation) => void;
 
-  constructor(video: Video, emitMovement: (loc: UserLocation) => void) {
+  constructor(video: Video, emitMovement: (loc: UserLocation) => void, myPlayerID : string) {
     super('PlayGame');
     this.video = video;
     this.emitMovement = emitMovement;
+    this.myPlayerID = myPlayerID;
   }
 
   preload() {
@@ -89,7 +90,7 @@ class CoveyGameScene extends Phaser.Scene {
       myPlayer = new Player(player.id, player.userName, location);
       this.players.push(myPlayer);
     }
-    if (this.id !== myPlayer.id && this.physics && player.location) {
+    if (this.myPlayerID !== myPlayer.id && this.physics && player.location) {
       let { sprite } = myPlayer;
       if (!sprite) {
         sprite = this.physics.add
@@ -189,7 +190,8 @@ class CoveyGameScene extends Phaser.Scene {
       this.player.label.setY(body.y - 20);
       if (!this.lastLocation
         || this.lastLocation.x !== body.x
-        || this.lastLocation.y !== body.y || this.lastLocation.rotation !== primaryDirection
+        || this.lastLocation.y !== body.y
+        || (isMoving && this.lastLocation.rotation !== primaryDirection)
         || this.lastLocation.moving !== isMoving) {
         if (!this.lastLocation) {
           this.lastLocation = {
@@ -244,16 +246,16 @@ class CoveyGameScene extends Phaser.Scene {
     // for reasons that are not obvious to me, but this seems to work. We also set them to be invisible
     // but for debugging, you can comment out that line.
     transporters.forEach(transporter => {
-        const sprite = transporter as Phaser.GameObjects.Sprite;
-        sprite.y += 2 * sprite.height; // Phaser and Tiled seem to disagree on which corner is y
-        sprite.setVisible(false); // Comment this out to see the transporter rectangles drawn on
-                                  // the map
-      }
+      const sprite = transporter as Phaser.GameObjects.Sprite;
+      sprite.y += 2 * sprite.height; // Phaser and Tiled seem to disagree on which corner is y
+      sprite.setVisible(false); // Comment this out to see the transporter rectangles drawn on
+      // the map
+    }
     );
 
-    const labels = map.filterObjects('Objects',(obj)=>obj.name==='label');
+    const labels = map.filterObjects('Objects', (obj) => obj.name === 'label');
     labels.forEach(label => {
-      if(label.x && label.y){
+      if (label.x && label.y) {
         this.add.text(label.x, label.y, label.text.text, {
           color: '#FFFFFF',
           backgroundColor: '#000000',
@@ -284,8 +286,22 @@ class CoveyGameScene extends Phaser.Scene {
     // Create a sprite with physics enabled via the physics system. The image used for the sprite
     // has a bit of whitespace, so I'm using setSize & setOffset to control the size of the
     // player's body.
+
+    // TODO: update spawn point based on accountService call/
+    // can add if statement, if saved location exists, then we can set it, otherwise use spawnPoint.x/y!
+    const testTown1 = { townID: 'townID', locationX: 400, locationY: 400 };
+    const getData = { userID: 'test123', username: 'testuser123', email: 'testuser123@email.com', useAudio: true, useVideo: false, towns: [testTown1] };
+    
+    let spawnPointX = spawnPoint.x;
+    let spawnPointY = spawnPoint.y;
+    const previousTown = getData.towns.find((town123) => town123.townID === this.video.coveyTownID)
+    if (previousTown) {
+      spawnPointX = previousTown.locationX;
+      spawnPointY = previousTown.locationY;
+    }
+
     const sprite = this.physics.add
-      .sprite(spawnPoint.x, spawnPoint.y, 'atlas', 'misa-front')
+      .sprite(spawnPointX, spawnPointY, 'atlas', 'misa-front')
       .setSize(30, 40)
       .setOffset(0, 24);
     const label = this.add.text(spawnPoint.x, spawnPoint.y - 20, '(You)', {
@@ -305,25 +321,25 @@ class CoveyGameScene extends Phaser.Scene {
     of the transporter.
      */
     this.physics.add.overlap(sprite, transporters,
-      (overlappingObject, transporter)=>{
-      if(cursorKeys.space.isDown && this.player){
-        // In the tiled editor, set the 'target' to be an *object* pointer
-        // Here, we'll see just the ID, then find the object by ID
-        const transportTargetID = transporter.getData('target') as number;
-        const target = map.findObject('Objects', obj => (obj as unknown as Phaser.Types.Tilemaps.TiledObject).id === transportTargetID);
-        if(target && target.x && target.y && this.lastLocation){
-          // Move the player to the target, update lastLocation and send it to other players
-          this.player.sprite.x = target.x;
-          this.player.sprite.y = target.y;
-          this.lastLocation.x = target.x;
-          this.lastLocation.y = target.y;
-          this.emitMovement(this.lastLocation);
+      (overlappingObject, transporter) => {
+        if (cursorKeys.space.isDown && this.player) {
+          // In the tiled editor, set the 'target' to be an *object* pointer
+          // Here, we'll see just the ID, then find the object by ID
+          const transportTargetID = transporter.getData('target') as number;
+          const target = map.findObject('Objects', obj => (obj as unknown as Phaser.Types.Tilemaps.TiledObject).id === transportTargetID);
+          if (target && target.x && target.y && this.lastLocation) {
+            // Move the player to the target, update lastLocation and send it to other players
+            this.player.sprite.x = target.x;
+            this.player.sprite.y = target.y;
+            this.lastLocation.x = target.x;
+            this.lastLocation.y = target.y;
+            this.emitMovement(this.lastLocation);
+          }
+          else {
+            throw new Error(`Unable to find target object ${target}`);
+          }
         }
-        else{
-          throw new Error(`Unable to find target object ${target}`);
-        }
-      }
-    })
+      })
 
     this.emitMovement({
       rotation: 'front',
@@ -421,7 +437,10 @@ class CoveyGameScene extends Phaser.Scene {
 
   resume() {
     this.paused = false;
-    this.input.keyboard.addCapture(this.previouslyCapturedKeys);
+    if(Video.instance()){
+      // If the game is also in process of being torn down, the keyboard could be undefined
+      this.input.keyboard.addCapture(this.previouslyCapturedKeys);
+    }
     this.previouslyCapturedKeys = [];
   }
 }
@@ -429,7 +448,7 @@ class CoveyGameScene extends Phaser.Scene {
 export default function WorldMap(): JSX.Element {
   const video = Video.instance();
   const {
-    emitMovement, players,
+    emitMovement, players, myPlayerID,
   } = useCoveyAppState();
   const [gameScene, setGameScene] = useState<CoveyGameScene>();
   useEffect(() => {
@@ -448,7 +467,7 @@ export default function WorldMap(): JSX.Element {
 
     const game = new Phaser.Game(config);
     if (video) {
-      const newGameScene = new CoveyGameScene(video, emitMovement);
+      const newGameScene = new CoveyGameScene(video, emitMovement, myPlayerID);
       setGameScene(newGameScene);
       game.scene.add('coveyBoard', newGameScene, true);
       video.pauseGame = () => {
@@ -461,12 +480,12 @@ export default function WorldMap(): JSX.Element {
     return () => {
       game.destroy(true);
     };
-  }, [video, emitMovement]);
+  }, [video, emitMovement, myPlayerID]);
 
   const deepPlayers = JSON.stringify(players);
   useEffect(() => {
     gameScene?.updatePlayersLocations(players);
   }, [players, deepPlayers, gameScene]);
 
-  return <div id="map-container"/>;
+  return <div id="map-container" />;
 }
