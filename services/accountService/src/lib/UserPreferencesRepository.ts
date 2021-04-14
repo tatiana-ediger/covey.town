@@ -27,14 +27,6 @@ export type SavedUserInfoRequest = {
  * RETURN type: {success: true/false}
  */
 export async function upsertUser(userInfo: SavedUserInfoRequest): Promise<boolean> {
-  // console.log(userInfo.userID);
-  // console.log('doing things');
-  // const query = {
-  //   name: 'addUqTownConstraint',
-  //   text: `ALTER TABLE towns ADD CONSTRAINT uq_town UNIQUE(town_id, user_id);`
-  // };
-  // await client.query(query);
-  // return true;
   try {
     const userPreferencesQuery = {
       name: 'UpsertUserPreferences',
@@ -49,10 +41,11 @@ export async function upsertUser(userInfo: SavedUserInfoRequest): Promise<boolea
               WHERE up.user_id = 'user234';`,
       values: [userInfo.userID, userInfo.email, userInfo.username, userInfo.useAudio, userInfo.useVideo]
     };
-
+    
     await client.query(userPreferencesQuery);
 
-    userInfo.towns?.forEach(async town => {
+    let townsQueries: any[] = [];
+    userInfo.towns?.forEach(town => {
       const townsQuery = {
         name: 'UpsertTowns',
         text: `INSERT INTO towns AS t (user_id, town_id, position_x, position_y)
@@ -65,12 +58,11 @@ export async function upsertUser(userInfo: SavedUserInfoRequest): Promise<boolea
                 WHERE t.user_id = $1 AND t.town_id = $2;`,
         values: [userInfo.userID, town.townID, town.positionX, town.positionY]
       };
-      console.log('TOWN:');
-      console.log(town);
-      await client.query(townsQuery);
+      townsQueries.push(client.query(townsQuery));
     });
 
-    // Promise.all(townsQueries);
+    Promise.all(townsQueries);
+    
     return true;
   } catch (err) {
     return false;

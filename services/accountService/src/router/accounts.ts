@@ -11,14 +11,7 @@ export default function addAccountRoutes(http: Server, app: Express): io.Server 
    */
   app.post('/user', BodyParser.json(), async (req, res) => {
     try {
-      const saveRequest = req.body as SaveUserRequest;
-      console.log(saveRequest);
-      if (req.body.email !== undefined) {
-        console.log('hello');
-        console.log(`email: '${req.body.email}'`);
-      }
-
-      const result = await saveUserHandler(saveRequest);
+      const result = await saveUserHandler(req.body as SaveUserRequest);
       res.status(StatusCodes.OK).json(result);
     } catch (err) {
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
