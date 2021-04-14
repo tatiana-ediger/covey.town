@@ -13,15 +13,16 @@ export default function addAccountRoutes(http: Server, app: Express): io.Server 
     try {
       const result = await saveUserHandler({
         userID: req.body.userID,
-        email: req.body.userEmail,
-        userName: req.body.userName,
+        email: req.body.email,
+        username: req.body.username,
         useAudio: req.body.useAudio,
         useVideo: req.body.useVideo,
+        towns: req.body.towns,
       });
       res.status(StatusCodes.OK).json(result);
     } catch (err) {
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-        message: 'Internal server error, please see account server for more details',
+        message: 'Internal server error, please see account server for more details'
       });
     }
   });
@@ -29,10 +30,10 @@ export default function addAccountRoutes(http: Server, app: Express): io.Server 
   /**
    * Get a user's setting preferences from Covey.Town
    */
-  app.get('/user', BodyParser.json(), async (req, res) => {
+  app.get('/user/:userID', BodyParser.json(), async (req, res) => {
     try {
       const result = await getUserHandler({
-        userEmail: req.body.userID,
+        userID: req.params.userID,
       });
       res.status(StatusCodes.OK).json(result);
     } catch (err) {
