@@ -10,7 +10,7 @@ import { GetUserRequest } from '../requestHandlers/AccountRequestHandlers';
 /**
  * Example data for Joined towns 
  */
- const town1: JoinedTown = {
+const town1: JoinedTown = {
   townID: '1',
   positionX: 0,
   positionY: 0,
@@ -38,7 +38,7 @@ const jeminSaveUser: SaveUserRequest = {
   useAudio: false,
   useVideo: false,
   towns: [],
-}
+};
 
 const johnSaveUser: SaveUserRequest = {
   userID: 'john',
@@ -47,7 +47,7 @@ const johnSaveUser: SaveUserRequest = {
   useAudio: true,
   useVideo: false,
   towns: [town1],
-}
+};
 
 const tatiSaveUser: SaveUserRequest = {
   userID: 'tatiana',
@@ -56,43 +56,43 @@ const tatiSaveUser: SaveUserRequest = {
   useAudio: true,
   useVideo: true,
   towns: [town1, town2, town3],
-}
+};
 
 const jeminUserIDSaveUser: SaveUserRequest = {
-  userID: 'jay'
-}
+  userID: 'jay',
+};
 
 /**
  * Example data for GetUserRequest
  */
 const jeminGetUser: GetUserRequest = {
   userID: 'jemin',
-}
+};
 
 const tatiGetUser: GetUserRequest = {
   userID: 'tatiana',
-}
+};
 
 const johnGetUser: GetUserRequest = {
   userID: 'john',
-}
+};
 
 const jeminUserIDGetUser: GetUserRequest = {
-  userID: 'jay'
-}
+  userID: 'jay',
+};
 
 /**
  * example data for return of GetUserResponse
  */
 
- const jeminUserResponse: GetUserResponse = {
+const jeminUserResponse: GetUserResponse = {
   userID: 'jay',
   email: '',
   username: '',
   useAudio: false,
   useVideo: false,
   towns: [],
-}
+};
 
 describe('AccountsServiceAPIREST', () => {
   let server: http.Server;
@@ -114,45 +114,50 @@ describe('AccountsServiceAPIREST', () => {
   });
 
   describe('saveUser and getUser', () => {
-    it ('Allows and retrieves user created with fully formatted SaveUserRequest without any joined towns', async () => {
+    it('Allows and retrieves user created with fully formatted SaveUserRequest without any joined towns', async () => {
       try {
-        await apiClient.saveUser(jeminSaveUser)
-        const res = await apiClient.getUser(jeminGetUser)
-        expect(res).toStrictEqual(jeminSaveUser)
+        await apiClient.saveUser(jeminSaveUser);
+        const res = await apiClient.getUser(jeminGetUser);
+        expect(res).toStrictEqual(jeminSaveUser);
       } catch (err){
         // shouldn't fail here
-        fail(err.toString())
+        fail(err.toString());
       }
     });
     it('Allows and retrieves user created with just userID with one joined town', async () => {
       try {
-        await apiClient.saveUser(johnSaveUser)
+        await apiClient.saveUser(johnSaveUser);
+        const res = await apiClient.getUser(johnGetUser);
+        expect(res).toStrictEqual(johnSaveUser);
       } catch (err) {
         // shouldn't fail here
-        fail(err.toString())
+        fail(err.toString());
       }
     });
     it('Allows and retrieves user created with just userID with multiple joined town', async () => {
       try {
-        await apiClient.saveUser(tatiSaveUser)
+        await apiClient.saveUser(tatiSaveUser);
+        const res = await apiClient.getUser(tatiGetUser);
+        expect(res).toStrictEqual(tatiSaveUser);
+
       } catch (err) {
         // shouldn't fail here
-        fail(err.toString())
+        fail(err.toString());
       }
     });
     it('Allows and retrieves user created with just userID', async () => {
       try {
-        await apiClient.saveUser(jeminUserIDSaveUser)
-        const res = await apiClient.getUser(jeminUserIDGetUser)
-        expect(res).toStrictEqual(jeminUserResponse)
+        await apiClient.saveUser(jeminUserIDSaveUser);
+        const res = await apiClient.getUser(jeminUserIDGetUser);
+        expect(res).toStrictEqual(jeminUserResponse);
       } catch (err) {
         // shouldn't fail here
-        fail(err.toString())
+        fail(err.toString());
       }
     });
     it('saveUser prohibits a blank userID', async () => {
       try {
-        await apiClient.saveUser( { userID: '' })
+        await apiClient.saveUser( { userID: '' });
         fail('saveUser should throw an error if userID is an empty string');
       } catch (err) {
         // OK
@@ -160,7 +165,7 @@ describe('AccountsServiceAPIREST', () => {
     });
     it('getUser prohibits a blank userID', async () => {
       try {
-        await apiClient.saveUser( { userID: '' })
+        await apiClient.saveUser( { userID: '' });
         fail('getUser should throw an error if userID is an empty string');
       } catch (err) {
         // OK
