@@ -3,8 +3,8 @@ import axios, { AxiosInstance, AxiosResponse } from 'axios';
 
 export type JoinedTown = {
   townID: string,
-  locationX: number,
-  locationY: number,
+  positionX: number,
+  positionY: number,
 };
 
 /**
@@ -25,7 +25,6 @@ export interface SaveUserRequest {
 export interface GetUserRequest {
   userID: string;
 }
-
 
 /**
  * Response from the server for a get user request
@@ -57,7 +56,7 @@ export default class AccountsServiceClient {
    * @param serviceURL
    */
   constructor(serviceURL?: string) {
-    const baseURL = serviceURL || 'http://localhost:8080';// process.env.REACT_APP_ACCOUNTS_SERVICE_URL; //TODO figure out how to use this instead of hardcode
+    const baseURL = serviceURL || 'http://localhost:8080';// process.env.REACT_APP_ACCOUNTS_SERVICE_URL;
     assert(baseURL);
     this._axios = axios.create({ baseURL });
   }
@@ -82,9 +81,7 @@ export default class AccountsServiceClient {
   }
 
   async getUser(requestData: GetUserRequest): Promise<GetUserResponse> {
-    console.log(`client ID: ${requestData.userID}`);
     const responseWrapper = await this._axios.get<ResponseEnvelope<GetUserResponse>>(`/user/${requestData.userID}`);
-    console.log(`client res: ${responseWrapper}`);
     return AccountsServiceClient.unwrapOrThrowError(responseWrapper);
   }
 }

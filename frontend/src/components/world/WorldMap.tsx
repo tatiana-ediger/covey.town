@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Phaser from 'phaser';
+import { useAuth0 } from '@auth0/auth0-react';
 import Player, { UserLocation } from '../../classes/Player';
 import Video from '../../classes/Video/Video';
 import useCoveyAppState from '../../hooks/useCoveyAppState';
+import { JoinedTown } from '../../CoveyTypes';
 
 // https://medium.com/@michaelwesthadley/modular-game-worlds-in-phaser-3-tilemaps-1-958fc7e6bbd6
 class CoveyGameScene extends Phaser.Scene {
@@ -11,6 +13,10 @@ class CoveyGameScene extends Phaser.Scene {
   };
 
   private myPlayerID: string;
+  
+  private isLoggedIn: boolean;
+  
+  private previousTowns: JoinedTown[];
 
   private players: Player[] = [];
 
@@ -33,11 +39,13 @@ class CoveyGameScene extends Phaser.Scene {
 
   private emitMovement: (loc: UserLocation) => void;
 
-  constructor(video: Video, emitMovement: (loc: UserLocation) => void, myPlayerID : string) {
+  constructor(video: Video, emitMovement: (loc: UserLocation) => void, myPlayerID: string, isLoggedIn = false, previousTowns: JoinedTown[] = []) {
     super('PlayGame');
     this.video = video;
     this.emitMovement = emitMovement;
     this.myPlayerID = myPlayerID;
+    this.isLoggedIn = isLoggedIn;
+    this.previousTowns = previousTowns;
   }
 
   preload() {
@@ -210,7 +218,7 @@ class CoveyGameScene extends Phaser.Scene {
     }
   }
 
-  create() {
+  async create() {
     const map = this.make.tilemap({ key: 'map' });
 
     /* Parameters are the name you gave the tileset in Tiled and then the key of the
@@ -287,19 +295,18 @@ class CoveyGameScene extends Phaser.Scene {
     // has a bit of whitespace, so I'm using setSize & setOffset to control the size of the
     // player's body.
 
-    // TODO: update spawn point based on accountService call/
-    // can add if statement, if saved location exists, then we can set it, otherwise use spawnPoint.x/y!
-    const testTown1 = { townID: 'townID', locationX: 400, locationY: 400 };
-    const getData = { userID: 'test123', username: 'testuser123', email: 'testuser123@email.com', useAudio: true, useVideo: false, towns: [testTown1] };
-    
     let spawnPointX = spawnPoint.x;
     let spawnPointY = spawnPoint.y;
-    const previousTown = getData.towns.find((town123) => town123.townID === this.video.coveyTownID)
-    if (previousTown) {
-      spawnPointX = previousTown.locationX;
-      spawnPointY = previousTown.locationY;
+    console.log(`loggedIn: ${this.isLoggedIn}`);
+    console.log(`towns: ${this.previousTowns}`);
+    if (this.isLoggedIn) {
+      const previousTownInfo = this.previousTowns.find(town => town.townID === this.video.coveyTownID);
+      if (previousTownInfo) {
+        spawnPointX = previousTownInfo.locationX;
+        spawnPointY = previousTownInfo.locationY;
+      }
     }
-
+    console.log(`spawnX: ${spawnPointX}, spawnY: ${spawnPointY}`);
     const sprite = this.physics.add
       .sprite(spawnPointX, spawnPointY, 'atlas', 'misa-front')
       .setSize(30, 40)
@@ -448,9 +455,25 @@ class CoveyGameScene extends Phaser.Scene {
 export default function WorldMap(): JSX.Element {
   const video = Video.instance();
   const {
-    emitMovement, players, myPlayerID,
+    emitMovement, players, myPlayerID, accountApiClient
   } = useCoveyAppState();
   const [gameScene, setGameScene] = useState<CoveyGameScene>();
+  const [previousTowns, setPreviousTowns] = useState<JoinedTown[]>([]);
+  const { isAuthenticated, user } = useAuth0();
+  
+  const updatePreviousTowns = useCallback((userID: string) => {
+    accountApiClient.getUser({ userID })
+      .then(res => {
+        console.log(`then: ${JSON.stringify(res.towns)}`);
+        setPreviousTowns(res.towns);
+      })
+      .catch((err) => {
+        console.log(err);
+        setPreviousTowns([]);
+      });
+  }, [setPreviousTowns, accountApiClient]);
+
+
   useEffect(() => {
     const config = {
       type: Phaser.AUTO,
@@ -465,9 +488,37 @@ export default function WorldMap(): JSX.Element {
       },
     };
 
+
+    // const updateTownListings = useCallback(() => {
+    //   // console.log(apiClient);
+    //   apiClient.listTowns()
+    //     .then((towns) => {
+    //       setCurrentPublicTowns(towns.towns
+    //         .sort((a, b) => b.currentOccupancy - a.currentOccupancy)
+    //       );
+    //     })
+    // }, [setCurrentPublicTowns, apiClient]);
+
+    // function updatePreviousTowns(userID: string) {
+    //   accountApiClient.getUser({ userID })
+    //     .then(res => {
+    //       console.log(`then: ${JSON.stringify(res.towns)}`);
+    //       setPreviousTowns(res.towns);
+    //     })
+    //     .catch((err) => {
+    //       console.log(err);
+    //       setPreviousTowns([]);
+    //     });
+    // }
+
     const game = new Phaser.Game(config);
     if (video) {
-      const newGameScene = new CoveyGameScene(video, emitMovement, myPlayerID);
+      if (isAuthenticated) {
+        console.log('callin updatePreviousTowns');
+        updatePreviousTowns(user.sub);
+      }
+      console.log(`previous Towns: ${previousTowns}`);
+      const newGameScene = new CoveyGameScene(video, emitMovement, myPlayerID, isAuthenticated, previousTowns);
       setGameScene(newGameScene);
       game.scene.add('coveyBoard', newGameScene, true);
       video.pauseGame = () => {
@@ -480,7 +531,7 @@ export default function WorldMap(): JSX.Element {
     return () => {
       game.destroy(true);
     };
-  }, [video, emitMovement, myPlayerID]);
+  }, [video, emitMovement, myPlayerID, setPreviousTowns]);
 
   const deepPlayers = JSON.stringify(players);
   useEffect(() => {
