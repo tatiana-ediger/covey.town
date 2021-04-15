@@ -65,7 +65,7 @@ const useStyles = makeStyles((theme: Theme) => ({
 interface DeviceSelectionScreenProps {
   savedAudioPreference: boolean;
   savedVideoPreference: boolean;
-  setUserInfo(userInfo: UserInfo): void;
+  setUserInfo?(userInfo: UserInfo): void;
   setMediaError?(error: Error): void;
 }
 
@@ -92,7 +92,9 @@ export default function DeviceSelectionScreen({ savedAudioPreference, savedVideo
     try {
       await accountApiClient.saveUser({ userID, useAudio: newUseAudio, useVideo: newUseVideo });
       const getResponse = await accountApiClient.getUser({ userID });
-      setUserInfo(getResponse as UserInfo);
+      if (setUserInfo) {
+        setUserInfo(getResponse as UserInfo);
+      }
       toast({
         title: 'Successfully saved device settings!',
         description: 'Any time you log into Covey.Town in the future, you can click the \'Saved Media\' button to apply these settings.',

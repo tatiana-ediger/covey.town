@@ -28,11 +28,11 @@ import { UserInfo } from '../../CoveyTypes';
 
 interface TownSelectionProps {
   username: string;
-  setUserInfo(userInfo: UserInfo): void;
-  doLogin: (initData: TownJoinResponse) => Promise<boolean>
+  doLogin: (initData: TownJoinResponse) => Promise<boolean>;
+  setUserInfo?(userInfo: UserInfo): void;
 }
 
-export default function TownSelection({ username, setUserInfo, doLogin }: TownSelectionProps): JSX.Element {
+export default function TownSelection({ username, doLogin, setUserInfo }: TownSelectionProps): JSX.Element {
   const [userName, setUserName] = useState<string>('');
   const [newTownName, setNewTownName] = useState<string>('');
   const [newTownIsPublic, setNewTownIsPublic] = useState<boolean>(true);
@@ -106,7 +106,9 @@ export default function TownSelection({ username, setUserInfo, doLogin }: TownSe
       else {
         await accountApiClient.saveUser({ userID,  username: newUsername });
         const getResponse = await accountApiClient.getUser({ userID });
-        setUserInfo(getResponse as UserInfo);
+        if (setUserInfo) {
+          setUserInfo(getResponse as UserInfo);
+        }
         toast({
           title: 'Successfully saved username!',
           description: 'Any time you log into Covey.Town in the future, you can click the \'Saved Name\' button to apply these settings.',
