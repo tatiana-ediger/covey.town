@@ -273,3 +273,7 @@ export default function TownSelection({ username, doLogin, setUserInfo }: TownSe
     </>
   );
 }
+
+TownSelection.defaultProps = {
+  setUserInfo() {},
+};

@@ -70,7 +70,6 @@ interface DeviceSelectionScreenProps {
 }
 
 export default function DeviceSelectionScreen({ savedAudioPreference, savedVideoPreference, setUserInfo, setMediaError }: DeviceSelectionScreenProps) {
-  console.log(`dss: ${savedAudioPreference}, ${savedVideoPreference}`);
   const classes = useStyles();
   const [useSavedDevicePreferences, setUseSavedDevicePreferences] = useState<boolean>(false);
   const [currentlyUnmuted, setCurrentlyUnmuted] = useState<boolean>(false);

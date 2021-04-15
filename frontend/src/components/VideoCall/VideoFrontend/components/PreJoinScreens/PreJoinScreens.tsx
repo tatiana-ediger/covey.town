@@ -33,7 +33,7 @@ export default function PreJoinScreens(props: { doLogin: (initData: TownJoinResp
       updateUserInfo(request.userID);
     } catch (err) {
       console.log(err.toString());
-      // Do nothing i guess?
+      // Do nothing
     }
   }
 
@@ -45,8 +45,6 @@ export default function PreJoinScreens(props: { doLogin: (initData: TownJoinResp
       setUserInfo(loggedOutUser);
     }
   }, [loggedIn]);
-
-  console.log(userInfo);
 
   return (
     <IntroContainer>

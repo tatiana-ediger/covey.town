@@ -35,6 +35,7 @@ export async function upsertUser(userInfo: SavedUserInfoRequest): Promise<boolea
             ON CONFLICT ON CONSTRAINT user_preferences_pkey
             DO
               UPDATE SET
+                email = COALESCE($2, up.email),
                 username = COALESCE($3, up.username),
                 use_audio = COALESCE($4, up.use_audio),
                 use_video = COALESCE($5, up.use_video)
