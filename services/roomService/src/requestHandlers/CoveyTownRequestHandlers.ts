@@ -234,7 +234,6 @@ export function townSubscriptionHandler(socket: Socket): void {
   // clean up our listener adapter, and then let the CoveyTownController know that the
   // player's session is disconnected
   socket.on('disconnect', async () => {
-    console.log(s.player);
     if (s.player.isLoggedIn) {
       const accountApiClient = new AccountsServiceClient();
       const lastTownPosition = { townID: coveyTownID, positionX: s.player.location.x, positionY: s.player.location.y };
