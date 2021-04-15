@@ -516,7 +516,7 @@ export default function WorldMap(): JSX.Element {
     gameScene?.updatePlayersLocations(players);
   }, [players, deepPlayers, gameScene]);
 
-  if (!getResponseReceived) {
+  if (!getResponseReceived && isAuthenticated) {
     return <div>Loading...</div>
   }
   return <div id="map-container" />;
