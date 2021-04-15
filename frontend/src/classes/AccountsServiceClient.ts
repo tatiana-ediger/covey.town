@@ -82,9 +82,7 @@ export default class AccountsServiceClient {
   }
 
   async getUser(requestData: GetUserRequest): Promise<GetUserResponse> {
-    console.log(`client ID: ${requestData.userID}`);
     const responseWrapper = await this._axios.get<ResponseEnvelope<GetUserResponse>>(`/user/${requestData.userID}`);
-    console.log(`client res: ${responseWrapper}`);
     return AccountsServiceClient.unwrapOrThrowError(responseWrapper);
   }
 }

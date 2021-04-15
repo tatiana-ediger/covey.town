@@ -237,12 +237,9 @@ export function townSubscriptionHandler(socket: Socket): void {
   // player's session is disconnected
   socket.on('disconnect', async () => {
     try {
-      console.log(s.player);
       if (s.player.isLoggedIn) {
         const lastTownPosition = { townID: coveyTownID, positionX: s.player.location.x, positionY: s.player.location.y };
-        console.log(`trying to save user ${s.player.id} at: ${lastTownPosition}`);
         await saveUserHandler({ userID: s.player.id, towns: [lastTownPosition]});
-        console.log(`saved user at: ${lastTownPosition}`);
       }
     } catch (err) {
       console.log(err);
