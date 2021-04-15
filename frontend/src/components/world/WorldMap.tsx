@@ -297,7 +297,6 @@ class CoveyGameScene extends Phaser.Scene {
 
     let spawnPointX = spawnPoint.x;
     let spawnPointY = spawnPoint.y;
-    console.log(`orginal spawn loc: (${spawnPointX}, ${spawnPointY})`);
     if (this.isLoggedIn) {
       const previousTownInfo = this.previousTowns.find(town => town.townID === this.video.coveyTownID);
       if (previousTownInfo) {
@@ -305,7 +304,6 @@ class CoveyGameScene extends Phaser.Scene {
         spawnPointY = previousTownInfo.positionY;
       }
     }
-    console.log(`spawning at: (${spawnPointX}, ${spawnPointY})`);
     const sprite = this.physics.add
       .sprite(spawnPointX, spawnPointY, 'atlas', 'misa-front')
       .setSize(30, 40)
@@ -467,8 +465,7 @@ export default function WorldMap(): JSX.Element {
         setPreviousTowns(res.towns);
         setGetResponseReceived(true);
       })
-      .catch((err) => {
-        console.log(err);
+      .catch(() => {
         setPreviousTowns([]);
         setGetResponseReceived(true);
       });
@@ -509,7 +506,7 @@ export default function WorldMap(): JSX.Element {
     return () => {
       game.destroy(true);
     };
-  }, [video, emitMovement, myPlayerID, getResponseReceived]);
+  }, [video, emitMovement, myPlayerID, getResponseReceived, isAuthenticated, user.sub, previousTowns, updatePreviousTowns]);
 
   const deepPlayers = JSON.stringify(players);
   useEffect(() => {

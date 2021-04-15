@@ -99,6 +99,7 @@ export default function DeviceSelectionScreen({
   const toast = useToast();
   const handleSaveDevices = async (userID: string, newUseAudio: boolean, newUseVideo: boolean) => {
     try {
+      console.log(`dss to save: audio: ${newUseAudio}, video: ${newUseVideo}`);
       await accountApiClient.saveUser({ userID, useAudio: newUseAudio, useVideo: newUseVideo });
       const getResponse = await accountApiClient.getUser({ userID });
       if (setUserInfo) {
@@ -133,7 +134,7 @@ export default function DeviceSelectionScreen({
                 disabled={useSavedDevicePreferences || disableButtons}
                 setMediaError={setMediaError}
                 useSavedAudio={useSavedDevicePreferences ? savedAudioPreference : undefined} // only want to pass down when checked
-                setMuted={setCurrentlyUnmuted}
+                setUnmuted={setCurrentlyUnmuted}
               />
               <ToggleVideoButton
                 className={classes.mobileButton}
@@ -181,7 +182,7 @@ export default function DeviceSelectionScreen({
                   disabled={useSavedDevicePreferences || disableButtons}
                   setMediaError={setMediaError}
                   useSavedAudio={useSavedDevicePreferences ? savedAudioPreference : undefined}
-                  setMuted={setCurrentlyUnmuted}
+                  setUnmuted={setCurrentlyUnmuted}
                 />
                 <ToggleVideoButton
                   className={classes.deviceButton}

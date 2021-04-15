@@ -93,7 +93,7 @@ export default function TownSelection({ username, doLogin, setUserInfo }: TownSe
         status: 'error'
       })
     }
-  }, [doLogin, userName, connect, toast]);
+  }, [doLogin, userName, connect, toast, auth0.isAuthenticated, auth0.user?.sub]);
 
   const handleSaveUsername = async (userID: string, newUsername: string) => {
     try {
