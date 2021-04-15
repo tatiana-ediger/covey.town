@@ -10,7 +10,7 @@ import ToggleAudioButton from '../../Buttons/ToggleAudioButton/ToggleAudioButton
 import ToggleVideoButton from '../../Buttons/ToggleVideoButton/ToggleVideoButton';
 import { useAppState } from '../../../state';
 import useVideoContext from '../../../hooks/useVideoContext/useVideoContext';
-import { VideoRoom } from '../../../../../../CoveyTypes';
+import { UserInfo, VideoRoom } from '../../../../../../CoveyTypes';
 
 import Video from '../../../../../../classes/Video/Video';
 import { TownJoinResponse } from '../../../../../../classes/TownsServiceClient';
@@ -63,15 +63,18 @@ const useStyles = makeStyles((theme: Theme) => ({
 }));
 
 interface DeviceSelectionScreenProps {
-  useAudio: boolean
-  useVideo: boolean
+  savedAudioPreference: boolean;
+  savedVideoPreference: boolean;
+  setUserInfo(userInfo: UserInfo): void;
   setMediaError?(error: Error): void;
 }
 
-export default function DeviceSelectionScreen({ useAudio, useVideo, setMediaError }: DeviceSelectionScreenProps) {
-  // console.log(`dss: ${useAudio}, ${useVideo}`);
+export default function DeviceSelectionScreen({ savedAudioPreference, savedVideoPreference, setUserInfo, setMediaError }: DeviceSelectionScreenProps) {
+  console.log(`dss: ${savedAudioPreference}, ${savedVideoPreference}`);
   const classes = useStyles();
   const [useSavedDevicePreferences, setUseSavedDevicePreferences] = useState<boolean>(false);
+  const [currentlyUnmuted, setCurrentlyUnmuted] = useState<boolean>(false);
+  const [currentlyShowVideo, setCurrentlyShowVideo] = useState<boolean>(false);
   const { accountApiClient } = useCoveyAppState();
   const auth0 = useAuth0();
 
@@ -87,7 +90,9 @@ export default function DeviceSelectionScreen({ useAudio, useVideo, setMediaErro
   const toast = useToast();
   const handleSaveDevices = async (userID: string, newUseAudio: boolean, newUseVideo: boolean) => {
     try {
-      await accountApiClient.saveUser({ userID, useAudio: true, useVideo: true });
+      await accountApiClient.saveUser({ userID, useAudio: newUseAudio, useVideo: newUseVideo });
+      const getResponse = await accountApiClient.getUser({ userID });
+      setUserInfo(getResponse as UserInfo);
       toast({
         title: 'Successfully saved device settings!',
         description: 'Any time you log into Covey.Town in the future, you can click the \'Saved Media\' button to apply these settings.',
@@ -115,13 +120,15 @@ export default function DeviceSelectionScreen({ useAudio, useVideo, setMediaErro
                 className={classes.mobileButton}
                 disabled={useSavedDevicePreferences || disableButtons}
                 setMediaError={setMediaError}
-                savedAudioEnabled={useSavedDevicePreferences ? useAudio : undefined} // only want to pass down when checked
+                useSavedAudio={useSavedDevicePreferences ? savedAudioPreference : undefined} // only want to pass down when checked
+                setMuted={setCurrentlyUnmuted}
               />
               <ToggleVideoButton
                 className={classes.mobileButton}
                 disabled={useSavedDevicePreferences || disableButtons}
                 setMediaError={setMediaError}
-                savedVideoEnabled={useSavedDevicePreferences ? useVideo : undefined}
+                useSavedVideo={useSavedDevicePreferences ? savedVideoPreference : undefined}
+                setShowVideo={setCurrentlyShowVideo}
               />
               {auth0.isAuthenticated &&
                 <>
@@ -134,7 +141,7 @@ export default function DeviceSelectionScreen({ useAudio, useVideo, setMediaErro
                   <Button 
                     float='right'
                     isDisabled={useSavedDevicePreferences} 
-                    onClick={async () => { await handleSaveDevices(auth0.user.sub, useAudio, useVideo); }}>
+                    onClick={async () => { await handleSaveDevices(auth0.user.sub, currentlyUnmuted, currentlyShowVideo); }}>
                       Save
                   </Button>
                 </>
@@ -151,13 +158,15 @@ export default function DeviceSelectionScreen({ useAudio, useVideo, setMediaErro
                   className={classes.deviceButton}
                   disabled={useSavedDevicePreferences || disableButtons}
                   setMediaError={setMediaError}
-                  savedAudioEnabled={useSavedDevicePreferences ? useAudio : undefined}
+                  useSavedAudio={useSavedDevicePreferences ? savedAudioPreference : undefined}
+                  setMuted={setCurrentlyUnmuted}
                 />
                 <ToggleVideoButton
                   className={classes.deviceButton}
                   disabled={useSavedDevicePreferences || disableButtons}
                   setMediaError={setMediaError}
-                  savedVideoEnabled={useSavedDevicePreferences ? useVideo : undefined}
+                  useSavedVideo={useSavedDevicePreferences ? savedVideoPreference : undefined}
+                  setShowVideo={setCurrentlyShowVideo}
                 />
                 {auth0.isAuthenticated &&
                   <>
@@ -170,7 +179,7 @@ export default function DeviceSelectionScreen({ useAudio, useVideo, setMediaErro
                     <Button 
                       float='right'
                       isDisabled={useSavedDevicePreferences} 
-                      onClick={async () => { await handleSaveDevices(auth0.user.sub, useAudio, useVideo); }}>
+                      onClick={async () => { await handleSaveDevices(auth0.user.sub, currentlyUnmuted, currentlyShowVideo); }}>
                         Save
                     </Button>
                   </>

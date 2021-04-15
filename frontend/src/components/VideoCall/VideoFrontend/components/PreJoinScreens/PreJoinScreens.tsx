@@ -22,16 +22,15 @@ export default function PreJoinScreens(props: { doLogin: (initData: TownJoinResp
     setLoggedIn(auth0.isAuthenticated);
   }
 
-  async function updateUserInfo() {
-    const getResponse = await accountApiClient.getUser({ userID: 'auth0|605e418949d18900721c9cb4' });
-    console.log(getResponse);
+  async function updateUserInfo(userID: string) {
+    const getResponse = await accountApiClient.getUser({ userID });
     setUserInfo(getResponse as UserInfo);
   }
 
   async function saveUserInfo(request: SaveUserRequest) {
     try {
       await accountApiClient.saveUser(request);
-      updateUserInfo();
+      updateUserInfo(request.userID);
     } catch (err) {
       console.log(err.toString());
       // Do nothing i guess?
@@ -47,8 +46,7 @@ export default function PreJoinScreens(props: { doLogin: (initData: TownJoinResp
     }
   }, [loggedIn]);
 
-  // updateUserInfo();
-  // console.log(`userInfo: ${userInfo.username}, ${userInfo.useAudio}, ${userInfo.useVideo}`);
+  console.log(userInfo);
 
   return (
     <IntroContainer>
@@ -62,13 +60,16 @@ export default function PreJoinScreens(props: { doLogin: (initData: TownJoinResp
         to hang out in, or join an existing one.
       </Text>
       <DeviceSelectionScreen
-        useAudio={userInfo.useAudio}
-        useVideo={userInfo.useVideo}
+        savedAudioPreference={userInfo.useAudio}
+        savedVideoPreference={userInfo.useVideo}
         setMediaError={props.setMediaError}
+        setUserInfo={setUserInfo}
       />
       <TownSelection
         username={userInfo.username}
-        doLogin={props.doLogin} />
+        doLogin={props.doLogin} 
+        setUserInfo={setUserInfo}
+      />
     </IntroContainer>
   );
 }

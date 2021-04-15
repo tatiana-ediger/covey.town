@@ -24,13 +24,15 @@ import useVideoContext from '../VideoCall/VideoFrontend/hooks/useVideoContext/us
 import Video from '../../classes/Video/Video';
 import { CoveyTownInfo, TownJoinResponse, } from '../../classes/TownsServiceClient';
 import useCoveyAppState from '../../hooks/useCoveyAppState';
+import { UserInfo } from '../../CoveyTypes';
 
 interface TownSelectionProps {
   username: string;
+  setUserInfo(userInfo: UserInfo): void;
   doLogin: (initData: TownJoinResponse) => Promise<boolean>
 }
 
-export default function TownSelection({ username, doLogin }: TownSelectionProps): JSX.Element {
+export default function TownSelection({ username, setUserInfo, doLogin }: TownSelectionProps): JSX.Element {
   const [userName, setUserName] = useState<string>('');
   const [newTownName, setNewTownName] = useState<string>('');
   const [newTownIsPublic, setNewTownIsPublic] = useState<boolean>(true);
@@ -103,7 +105,8 @@ export default function TownSelection({ username, doLogin }: TownSelectionProps)
       }
       else {
         await accountApiClient.saveUser({ userID,  username: newUsername });
-
+        const getResponse = await accountApiClient.getUser({ userID });
+        setUserInfo(getResponse as UserInfo);
         toast({
           title: 'Successfully saved username!',
           description: 'Any time you log into Covey.Town in the future, you can click the \'Saved Name\' button to apply these settings.',
@@ -116,7 +119,6 @@ export default function TownSelection({ username, doLogin }: TownSelectionProps)
         description: err.toString(),
         status: 'error',
       });
-      console.log(err.toString());
     }
   };
 
