@@ -22,26 +22,33 @@ export default function PreJoinScreens(props: { doLogin: (initData: TownJoinResp
     setLoggedIn(auth0.isAuthenticated);
   }
 
-  async function updateUserInfo(request: SaveUserRequest) {
+  async function updateUserInfo() {
+    const getResponse = await accountApiClient.getUser({ userID: 'auth0|605e418949d18900721c9cb4' });
+    console.log(getResponse);
+    setUserInfo(getResponse as UserInfo);
+  }
+
+  async function saveUserInfo(request: SaveUserRequest) {
     try {
-      // const getData = { userID: 'test123', username: 'testuser123', email: 'testuser123@email.com', useAudio: true, useVideo: false, towns: [] };
       await accountApiClient.saveUser(request);
-      const getResponse = await accountApiClient.getUser({ userID: request.userID });
-      setUserInfo(getResponse as UserInfo);
+      updateUserInfo();
     } catch (err) {
-      console.log('hello??');
+      console.log(err.toString());
       // Do nothing i guess?
     }
   }
 
   useEffect(() => {
     if (loggedIn) {
-      updateUserInfo({ userID: auth0.user.sub, email: auth0.user.email });
+      saveUserInfo({ userID: auth0.user.sub, email: auth0.user.email });
     }
     else {
       setUserInfo(loggedOutUser);
     }
   }, [loggedIn]);
+
+  // updateUserInfo();
+  // console.log(`userInfo: ${userInfo.username}, ${userInfo.useAudio}, ${userInfo.useVideo}`);
 
   return (
     <IntroContainer>

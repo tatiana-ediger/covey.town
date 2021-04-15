@@ -92,21 +92,31 @@ export default function TownSelection({ username, doLogin }: TownSelectionProps)
     }
   }, [doLogin, userName, connect, toast]);
 
-  const handleSaveUsername = () => {
-    // TODO call api
+  const handleSaveUsername = async (userID: string, newUsername: string) => {
     try {
-      toast({
-        title: 'Successfully saved username!',
-        description: 'Any time you log into Covey.Town in the future, you can click the \'Saved Name\' button to apply these settings.',
-        status: 'success',
-      });
+      if (newUsername.length === 0) {
+        toast({
+          title: 'You can only save a non-empty username',
+          description: 'Please enter a non-empty username.',
+          status: 'error',
+        });
+      }
+      else {
+        await accountApiClient.saveUser({ userID,  username: newUsername });
 
+        toast({
+          title: 'Successfully saved username!',
+          description: 'Any time you log into Covey.Town in the future, you can click the \'Saved Name\' button to apply these settings.',
+          status: 'success',
+        });
+      }
     } catch (err) {
       toast({
         title: 'Unable to connect to Account Service',
         description: err.toString(),
         status: 'error',
       });
+      console.log(err.toString());
     }
   };
 
@@ -157,7 +167,7 @@ export default function TownSelection({ username, doLogin }: TownSelectionProps)
     }
   };
 
-  const { isAuthenticated } = useAuth0();
+  const auth0 = useAuth0();
 
   // white-space attribute to nowrap
 
@@ -178,7 +188,7 @@ export default function TownSelection({ username, doLogin }: TownSelectionProps)
                 />
 
               </FormControl>
-              {isAuthenticated &&
+              {auth0.isAuthenticated &&
                 <>
                   <Box>
                     <FormControl>
@@ -190,7 +200,7 @@ export default function TownSelection({ username, doLogin }: TownSelectionProps)
                         }} />
                     </FormControl>
                   </Box>
-                  <Button isDisabled={useSavedUserName} onClick={handleSaveUsername}>Save</Button>
+                  <Button isDisabled={useSavedUserName} onClick={async () => { await handleSaveUsername(auth0.user.sub, userName)}}>Save</Button>
                 </>
               }
             </Flex>

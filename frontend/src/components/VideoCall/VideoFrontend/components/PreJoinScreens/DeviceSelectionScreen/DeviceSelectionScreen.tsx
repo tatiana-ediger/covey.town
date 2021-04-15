@@ -14,6 +14,7 @@ import { VideoRoom } from '../../../../../../CoveyTypes';
 
 import Video from '../../../../../../classes/Video/Video';
 import { TownJoinResponse } from '../../../../../../classes/TownsServiceClient';
+import useCoveyAppState from '../../../../../../hooks/useCoveyAppState';
 
 const useStyles = makeStyles((theme: Theme) => ({
   gutterBottom: {
@@ -68,8 +69,10 @@ interface DeviceSelectionScreenProps {
 }
 
 export default function DeviceSelectionScreen({ useAudio, useVideo, setMediaError }: DeviceSelectionScreenProps) {
+  // console.log(`dss: ${useAudio}, ${useVideo}`);
   const classes = useStyles();
   const [useSavedDevicePreferences, setUseSavedDevicePreferences] = useState<boolean>(false);
+  const { accountApiClient } = useCoveyAppState();
   const auth0 = useAuth0();
 
   const { getToken, isFetching } = useAppState();
@@ -82,9 +85,9 @@ export default function DeviceSelectionScreen({ useAudio, useVideo, setMediaErro
   } = useForm();
 
   const toast = useToast();
-  const handleSaveDevices = () => {
-    // TODO call api to saveUser!
+  const handleSaveDevices = async (userID: string, newUseAudio: boolean, newUseVideo: boolean) => {
     try {
+      await accountApiClient.saveUser({ userID, useAudio: true, useVideo: true });
       toast({
         title: 'Successfully saved device settings!',
         description: 'Any time you log into Covey.Town in the future, you can click the \'Saved Media\' button to apply these settings.',
@@ -128,7 +131,12 @@ export default function DeviceSelectionScreen({ useAudio, useVideo, setMediaErro
                       setUseSavedDevicePreferences(e.target.checked);
                     }} 
                   />
-                  <Button float='right' isDisabled={useSavedDevicePreferences} onClick={handleSaveDevices}>Save</Button>
+                  <Button 
+                    float='right'
+                    isDisabled={useSavedDevicePreferences} 
+                    onClick={async () => { await handleSaveDevices(auth0.user.sub, useAudio, useVideo); }}>
+                      Save
+                  </Button>
                 </>
               }
             </Hidden>
@@ -159,7 +167,12 @@ export default function DeviceSelectionScreen({ useAudio, useVideo, setMediaErro
                         setUseSavedDevicePreferences(e.target.checked);
                       }}
                     />
-                    <Button float='right' isDisabled={useSavedDevicePreferences} onClick={handleSaveDevices}>Save</Button>
+                    <Button 
+                      float='right'
+                      isDisabled={useSavedDevicePreferences} 
+                      onClick={async () => { await handleSaveDevices(auth0.user.sub, useAudio, useVideo); }}>
+                        Save
+                    </Button>
                   </>
                 }
               </Hidden>
