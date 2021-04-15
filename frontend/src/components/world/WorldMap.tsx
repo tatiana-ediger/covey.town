@@ -465,7 +465,7 @@ export default function WorldMap(): JSX.Element {
         setPreviousTowns(res.towns);
         setGetResponseReceived(true);
       })
-      .catch((err) => {
+      .catch(() => {
         setPreviousTowns([]);
         setGetResponseReceived(true);
       });
