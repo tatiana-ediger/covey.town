@@ -4,7 +4,9 @@ import Player from '../types/Player';
 import { CoveyTownList, UserLocation } from '../CoveyTypes';
 import CoveyTownListener from '../types/CoveyTownListener';
 import CoveyTownsStore from '../lib/CoveyTownsStore';
-import AccountsServiceClient from '../client/AccountsServiceClient';
+// import AccountsServiceClient from '../client/AccountsServiceClient';
+import { saveUserHandler } from '../requestHandlers/AccountRequestHandlers';
+
 
 /**
  * The format of a request to join a Town in Covey.Town, as dispatched by the server middleware
@@ -234,10 +236,16 @@ export function townSubscriptionHandler(socket: Socket): void {
   // clean up our listener adapter, and then let the CoveyTownController know that the
   // player's session is disconnected
   socket.on('disconnect', async () => {
-    if (s.player.isLoggedIn) {
-      const accountApiClient = new AccountsServiceClient();
-      const lastTownPosition = { townID: coveyTownID, positionX: s.player.location.x, positionY: s.player.location.y };
-      await accountApiClient.saveUser({ userID: s.player.id, towns: [lastTownPosition]});
+    try {
+      console.log(s.player);
+      if (s.player.isLoggedIn) {
+        const lastTownPosition = { townID: coveyTownID, positionX: s.player.location.x, positionY: s.player.location.y };
+        console.log(`trying to save user ${s.player.id} at: ${lastTownPosition}`);
+        await saveUserHandler({ userID: s.player.id, towns: [lastTownPosition]});
+        console.log(`saved user at: ${lastTownPosition}`);
+      }
+    } catch (err) {
+      console.log(err);
     }
     townController.removeTownListener(listener);
     townController.destroySession(s);

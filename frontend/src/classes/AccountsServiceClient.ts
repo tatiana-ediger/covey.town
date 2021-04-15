@@ -57,7 +57,7 @@ export default class AccountsServiceClient {
    * @param serviceURL
    */
   constructor(serviceURL?: string) {
-    const baseURL = serviceURL || 'http://localhost:8080';// process.env.REACT_APP_ACCOUNTS_SERVICE_URL; //TODO figure out how to use this instead of hardcode
+    const baseURL = serviceURL || process.env.REACT_APP_TOWNS_SERVICE_URL;
     assert(baseURL);
     this._axios = axios.create({ baseURL });
   }
