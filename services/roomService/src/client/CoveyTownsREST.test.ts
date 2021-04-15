@@ -206,6 +206,7 @@ describe('TownsServiceAPIREST', () => {
         await apiClient.joinTown({
           userName: nanoid(),
           coveyTownID: nanoid(),
+          isLoggedIn: false,
         });
         fail('Expected an error to be thrown by joinTown but none thrown');
       } catch (err) {

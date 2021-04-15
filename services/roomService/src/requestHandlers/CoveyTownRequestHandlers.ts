@@ -241,7 +241,6 @@ export function townSubscriptionHandler(socket: Socket): void {
     }
     townController.removeTownListener(listener);
     townController.destroySession(s);
-    // TODO call API here to save player's location after they disconnect
   });
 
   // Register an event listener for the client socket: if the client updates their
