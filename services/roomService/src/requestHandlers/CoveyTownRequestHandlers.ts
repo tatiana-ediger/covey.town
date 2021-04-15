@@ -5,7 +5,7 @@ import { CoveyTownList, UserLocation } from '../CoveyTypes';
 import CoveyTownListener from '../types/CoveyTownListener';
 import CoveyTownsStore from '../lib/CoveyTownsStore';
 // import AccountsServiceClient from '../client/AccountsServiceClient';
-import { saveUserHandler } from '../requestHandlers/AccountRequestHandlers';
+import { saveUserHandler } from './AccountRequestHandlers';
 
 
 /**
@@ -241,8 +241,8 @@ export function townSubscriptionHandler(socket: Socket): void {
         const lastTownPosition = { townID: coveyTownID, positionX: s.player.location.x, positionY: s.player.location.y };
         await saveUserHandler({ userID: s.player.id, towns: [lastTownPosition]});
       }
-    } catch (err) {
-      console.log(err);
+    } catch {
+      // Do nothing, unable to save most recent town
     }
     townController.removeTownListener(listener);
     townController.destroySession(s);

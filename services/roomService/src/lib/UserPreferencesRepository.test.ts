@@ -1,3 +1,4 @@
+import { Client } from 'pg';
 import { JoinedTown, UserInfo } from '../AccountTypes';
 import {
   deleteUser,
@@ -5,10 +6,6 @@ import {
   upsertUser,
 } from './UserPreferencesRepository';
 
-/**
- * Connection to the database used for the tests
- */
-const { Client } = require('pg');
 
 const testClient = new Client({
   connectionString:
