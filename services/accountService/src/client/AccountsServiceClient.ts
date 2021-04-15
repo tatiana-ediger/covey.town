@@ -2,9 +2,9 @@ import assert from 'assert';
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 
 export type JoinedTown = {
-  townID: string;
-  positionX: number;
-  positionY: number;
+  townID: string,
+  locationX: number,
+  locationY: number,
 };
 
 /**
@@ -12,10 +12,11 @@ export type JoinedTown = {
  */
 export interface SaveUserRequest {
   userID: string;
-  userEmail?: string;
-  userName?: string;
+  email?: string;
+  username?: string;
   useAudio?: boolean;
   useVideo?: boolean;
+  towns?: JoinedTown[];
 }
 
 /**
@@ -25,11 +26,12 @@ export interface GetUserRequest {
   userID: string;
 }
 
+
 /**
  * Response from the server for a get user request
  */
 export interface GetUserResponse {
-  userId: string;
+  userID: string;
   email: string;
   username: string;
   useAudio: boolean;
@@ -50,12 +52,12 @@ export default class AccountsServiceClient {
   private _axios: AxiosInstance;
 
   /**
-   * Construct a new Towns Service API client. Specify a serviceURL for testing, or otherwise
-   * defaults to the URL at the environmental variable REACT_APP_ROOMS_SERVICE_URL
+   * Construct a new Accounts Service API client. Specify a serviceURL for testing, or otherwise
+   * defaults to the URL at the environmental variable REACT_APP_ACCOUNTS_SERVICE_URL
    * @param serviceURL
    */
   constructor(serviceURL?: string) {
-    const baseURL = serviceURL || process.env.REACT_APP_TOWNS_SERVICE_URL;
+    const baseURL = serviceURL || 'http://localhost:8080';// process.env.REACT_APP_ACCOUNTS_SERVICE_URL;
     assert(baseURL);
     this._axios = axios.create({ baseURL });
   }
@@ -74,18 +76,13 @@ export default class AccountsServiceClient {
     throw new Error(`Error processing request: ${response.data.message}`);
   }
 
-  async saveUser(requestData: SaveUserRequest): Promise<boolean> {
-    const responseWrapper = await this._axios.post<ResponseEnvelope<boolean>>(
-      '/user',
-      requestData,
-    );
-    return AccountsServiceClient.unwrapOrThrowError(responseWrapper);
+  async saveUser(requestData: SaveUserRequest): Promise<void> {
+    const responseWrapper = await this._axios.put<ResponseEnvelope<void>>('/user', requestData);
+    return AccountsServiceClient.unwrapOrThrowError(responseWrapper, true);
   }
 
   async getUser(requestData: GetUserRequest): Promise<GetUserResponse> {
-    const responseWrapper = await this._axios.get<ResponseEnvelope<GetUserResponse>>(
-      `/user/${requestData.userID}`,
-    );
-    return AccountsServiceClient.unwrapOrThrowError(responseWrapper, true);
+    const responseWrapper = await this._axios.get<ResponseEnvelope<GetUserResponse>>(`/user/${requestData.userID}`);
+    return AccountsServiceClient.unwrapOrThrowError(responseWrapper);
   }
 }
