@@ -133,7 +133,7 @@ export default function DeviceSelectionScreen({
                 disabled={useSavedDevicePreferences || disableButtons}
                 setMediaError={setMediaError}
                 useSavedAudio={useSavedDevicePreferences ? savedAudioPreference : undefined} // only want to pass down when checked
-                setMuted={setCurrentlyUnmuted}
+                setUnmuted={setCurrentlyUnmuted}
               />
               <ToggleVideoButton
                 className={classes.mobileButton}
@@ -181,7 +181,7 @@ export default function DeviceSelectionScreen({
                   disabled={useSavedDevicePreferences || disableButtons}
                   setMediaError={setMediaError}
                   useSavedAudio={useSavedDevicePreferences ? savedAudioPreference : undefined}
-                  setMuted={setCurrentlyUnmuted}
+                  setUnmuted={setCurrentlyUnmuted}
                 />
                 <ToggleVideoButton
                   className={classes.deviceButton}
