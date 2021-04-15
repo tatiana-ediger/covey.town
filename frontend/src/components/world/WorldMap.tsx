@@ -297,16 +297,15 @@ class CoveyGameScene extends Phaser.Scene {
 
     let spawnPointX = spawnPoint.x;
     let spawnPointY = spawnPoint.y;
-    console.log(`loggedIn: ${this.isLoggedIn}`);
-    console.log(`towns: ${this.previousTowns}`);
+    console.log(`orginal spawn loc: (${spawnPointX}, ${spawnPointY})`);
     if (this.isLoggedIn) {
       const previousTownInfo = this.previousTowns.find(town => town.townID === this.video.coveyTownID);
       if (previousTownInfo) {
-        spawnPointX = previousTownInfo.locationX;
-        spawnPointY = previousTownInfo.locationY;
+        spawnPointX = previousTownInfo.positionX;
+        spawnPointY = previousTownInfo.positionY;
       }
     }
-    console.log(`spawnX: ${spawnPointX}, spawnY: ${spawnPointY}`);
+    console.log(`spawning at: (${spawnPointX}, ${spawnPointY})`);
     const sprite = this.physics.add
       .sprite(spawnPointX, spawnPointY, 'atlas', 'misa-front')
       .setSize(30, 40)
@@ -459,17 +458,19 @@ export default function WorldMap(): JSX.Element {
   } = useCoveyAppState();
   const [gameScene, setGameScene] = useState<CoveyGameScene>();
   const [previousTowns, setPreviousTowns] = useState<JoinedTown[]>([]);
+  const [getResponseReceived, setGetResponseReceived] = useState<boolean>();
   const { isAuthenticated, user } = useAuth0();
   
   const updatePreviousTowns = useCallback((userID: string) => {
     accountApiClient.getUser({ userID })
       .then(res => {
-        console.log(`then: ${JSON.stringify(res.towns)}`);
         setPreviousTowns(res.towns);
+        setGetResponseReceived(true);
       })
       .catch((err) => {
         console.log(err);
         setPreviousTowns([]);
+        setGetResponseReceived(true);
       });
   }, [setPreviousTowns, accountApiClient]);
 
@@ -488,55 +489,35 @@ export default function WorldMap(): JSX.Element {
       },
     };
 
-
-    // const updateTownListings = useCallback(() => {
-    //   // console.log(apiClient);
-    //   apiClient.listTowns()
-    //     .then((towns) => {
-    //       setCurrentPublicTowns(towns.towns
-    //         .sort((a, b) => b.currentOccupancy - a.currentOccupancy)
-    //       );
-    //     })
-    // }, [setCurrentPublicTowns, apiClient]);
-
-    // function updatePreviousTowns(userID: string) {
-    //   accountApiClient.getUser({ userID })
-    //     .then(res => {
-    //       console.log(`then: ${JSON.stringify(res.towns)}`);
-    //       setPreviousTowns(res.towns);
-    //     })
-    //     .catch((err) => {
-    //       console.log(err);
-    //       setPreviousTowns([]);
-    //     });
-    // }
-
     const game = new Phaser.Game(config);
     if (video) {
       if (isAuthenticated) {
-        console.log('callin updatePreviousTowns');
         updatePreviousTowns(user.sub);
       }
-      console.log(`previous Towns: ${previousTowns}`);
-      const newGameScene = new CoveyGameScene(video, emitMovement, myPlayerID, isAuthenticated, previousTowns);
-      setGameScene(newGameScene);
-      game.scene.add('coveyBoard', newGameScene, true);
-      video.pauseGame = () => {
-        newGameScene.pause();
-      }
-      video.unPauseGame = () => {
-        newGameScene.resume();
+      if (getResponseReceived || !isAuthenticated) {
+        const newGameScene = new CoveyGameScene(video, emitMovement, myPlayerID, isAuthenticated, previousTowns);
+        setGameScene(newGameScene);
+        game.scene.add('coveyBoard', newGameScene, true);
+        video.pauseGame = () => {
+          newGameScene.pause();
+        }
+        video.unPauseGame = () => {
+          newGameScene.resume();
+        }
       }
     }
     return () => {
       game.destroy(true);
     };
-  }, [video, emitMovement, myPlayerID, setPreviousTowns]);
+  }, [video, emitMovement, myPlayerID, getResponseReceived]);
 
   const deepPlayers = JSON.stringify(players);
   useEffect(() => {
     gameScene?.updatePlayersLocations(players);
   }, [players, deepPlayers, gameScene]);
 
+  if (!getResponseReceived) {
+    return <div>Loading...</div>
+  }
   return <div id="map-container" />;
 }
