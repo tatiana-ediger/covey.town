@@ -4,7 +4,7 @@ import http from 'http';
 import { AddressInfo } from 'net';
 import addAccountRoutes from '../router/accounts';
 
-import AccountsServiceClient, { GetUserResponse, JoinedTown, SaveUserRequest } from './AccountsServiceClient';
+import TownsServiceClient, { ResetUserRequest, GetUserResponse, JoinedTown, SaveUserRequest } from './TownsServiceClient';
 import { GetUserRequest } from '../requestHandlers/AccountRequestHandlers';
 
 /**
@@ -82,9 +82,27 @@ const jeminUserIDGetUser: GetUserRequest = {
 };
 
 /**
+ * Example data for ResetUserRequest
+ */
+const jeminResetUser: ResetUserRequest = {
+  userID: 'jemin',
+};
+
+const tatiResetUser: ResetUserRequest = {
+  userID: 'tatiana',
+};
+
+const johnResetUser: ResetUserRequest = {
+  userID: 'john',
+};
+
+const jeminUserIDResetUser: ResetUserRequest = {
+  userID: 'jay',
+};
+
+/**
  * example data for return of GetUserResponse
  */
-
 const jeminUserResponse: GetUserResponse = {
   userID: 'jay',
   email: '',
@@ -94,9 +112,9 @@ const jeminUserResponse: GetUserResponse = {
   towns: [],
 };
 
-describe('AccountsServiceAPIREST', () => {
+describe('AccountsServicesAPIREST', () => {
   let server: http.Server;
-  let apiClient: AccountsServiceClient;
+  let apiClient: TownsServiceClient;
 
   beforeAll(async () => {
     const app = Express();
@@ -107,7 +125,7 @@ describe('AccountsServiceAPIREST', () => {
     await server.listen();
     const address = server.address() as AddressInfo;
 
-    apiClient = new AccountsServiceClient(`http://127.0.0.1:${address.port}`);
+    apiClient = new TownsServiceClient(`http://127.0.0.1:${address.port}`);
   });
   afterAll(async () => {
     await server.close();
@@ -117,8 +135,11 @@ describe('AccountsServiceAPIREST', () => {
     it('Allows and retrieves user created with fully formatted SaveUserRequest without any joined towns', async () => {
       try {
         await apiClient.saveUser(jeminSaveUser);
-        const res = await apiClient.getUser(jeminGetUser);
-        expect(res).toStrictEqual(jeminSaveUser);
+
+        const getUserResult = await apiClient.getUser(jeminGetUser);
+        expect(getUserResult).toStrictEqual(jeminSaveUser);
+
+        await apiClient.resetUser(jeminResetUser)
       } catch (err){
         // shouldn't fail here
         fail(err.toString());
@@ -127,8 +148,11 @@ describe('AccountsServiceAPIREST', () => {
     it('Allows and retrieves user created with just userID with one joined town', async () => {
       try {
         await apiClient.saveUser(johnSaveUser);
-        const res = await apiClient.getUser(johnGetUser);
-        expect(res).toStrictEqual(johnSaveUser);
+
+        const getUserResult = await apiClient.getUser(johnGetUser);
+        expect(getUserResult).toStrictEqual(johnSaveUser);
+
+        await apiClient.resetUser(johnResetUser)
       } catch (err) {
         // shouldn't fail here
         fail(err.toString());
@@ -137,9 +161,11 @@ describe('AccountsServiceAPIREST', () => {
     it('Allows and retrieves user created with just userID with multiple joined town', async () => {
       try {
         await apiClient.saveUser(tatiSaveUser);
-        const res = await apiClient.getUser(tatiGetUser);
-        expect(res).toStrictEqual(tatiSaveUser);
 
+        const getUserResult = await apiClient.getUser(tatiGetUser);
+        expect(getUserResult).toStrictEqual(tatiSaveUser);
+
+        await apiClient.resetUser(tatiResetUser)
       } catch (err) {
         // shouldn't fail here
         fail(err.toString());
@@ -148,8 +174,11 @@ describe('AccountsServiceAPIREST', () => {
     it('Allows and retrieves user created with just userID', async () => {
       try {
         await apiClient.saveUser(jeminUserIDSaveUser);
-        const res = await apiClient.getUser(jeminUserIDGetUser);
-        expect(res).toStrictEqual(jeminUserResponse);
+
+        const getUserResult = await apiClient.getUser(jeminUserIDGetUser);
+        expect(getUserResult).toStrictEqual(jeminUserResponse);
+
+        await apiClient.resetUser(jeminUserIDResetUser)
       } catch (err) {
         // shouldn't fail here
         fail(err.toString());

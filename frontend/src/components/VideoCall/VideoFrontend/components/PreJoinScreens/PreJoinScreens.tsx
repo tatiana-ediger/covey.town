@@ -12,7 +12,6 @@ import useCoveyAppState from '../../../../../hooks/useCoveyAppState';
 export default function PreJoinScreens(props: { doLogin: (initData: TownJoinResponse) => Promise<boolean>; setMediaError?(error: Error): void }) {
   const auth0 = useAuth0();
   const { apiClient } = useCoveyAppState();
-
   const loggedOutUser = { userID: '', email: '', username: '', useAudio: false, useVideo: false, towns: [] };
   const [loggedIn, setLoggedIn] = useState<boolean>(auth0.isAuthenticated);
   const [userInfo, setUserInfo] = useState<UserInfo>(loggedOutUser);
@@ -49,6 +48,7 @@ export default function PreJoinScreens(props: { doLogin: (initData: TownJoinResp
     <IntroContainer>
       <Registration
         auth0={auth0}
+        setUserInfo={setUserInfo}
       />
       <Heading as="h2" size="xl">Welcome to Covey.Town{userInfo.username ? `, ${userInfo.username}` : ''}!</Heading>
       <Text p="4">

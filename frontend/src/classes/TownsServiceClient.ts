@@ -119,6 +119,13 @@ export interface GetUserResponse {
 }
 
 /**
+ * Payload sent by client to delete a user specified by a certain ID
+ */
+export interface ResetUserRequest {
+  userID: string;
+}
+
+/**
  * Envelope that wraps any response from the server
  */
 export interface ResponseEnvelope<T> {
@@ -190,7 +197,12 @@ export default class TownsServiceClient {
   }
 
   async getUser(requestData: GetUserRequest): Promise<GetUserResponse> {
-    const responseWrapper = await this._axios.get<ResponseEnvelope<GetUserResponse>>(`/user/${requestData.userID}`);
+    const responseWrapper = await this._axios.get<ResponseEnvelope<GetUserResponse>>(`/users/${requestData.userID}`);
     return TownsServiceClient.unwrapOrThrowError(responseWrapper);
+  }
+
+  async resetUser(requestData: ResetUserRequest): Promise<void> {
+    const responseWrapper = await this._axios.delete<ResponseEnvelope<void>>(`/users/${requestData.userID}`);
+    return TownsServiceClient.unwrapOrThrowError(responseWrapper, true);
   }
 }

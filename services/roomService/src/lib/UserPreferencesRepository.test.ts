@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 import { Client } from 'pg';
 import { JoinedTown, UserInfo } from '../AccountTypes';
 import {
-  deleteUser,
+  resetUser,
   getUserByID,
   upsertUser,
 } from './UserPreferencesRepository';
@@ -103,7 +103,7 @@ const tatiInfoUpdate: UserInfo = {
   towns: [],
 };
 
-describe('upsertUser, getUserById, deleteUser', () => {
+describe('upsertUser, getUserById, resetUser', () => {
   beforeAll(done => {
     done();
     testClient.connect();
@@ -123,7 +123,7 @@ describe('upsertUser, getUserById, deleteUser', () => {
     expect(userInfo).toStrictEqual(kyleInfo);
 
     // delete the user from the database
-    const result = await deleteUser(userID);
+    const result = await resetUser(userID);
     expect(result).toBe(true);
   });
 
@@ -146,7 +146,7 @@ describe('upsertUser, getUserById, deleteUser', () => {
     expect(updatedUserInfo).toStrictEqual(jeminInfoUpdate);
 
     // delete the user from the database
-    const deletedUser = await deleteUser(userID);
+    const deletedUser = await resetUser(userID);
     expect(deletedUser).toBe(true);
   });
 
@@ -170,7 +170,7 @@ describe('upsertUser, getUserById, deleteUser', () => {
     expect(updatedUserInfo).toStrictEqual(johnInfoUpdate);
 
     // delete the user from the database
-    const deletedUser = await deleteUser(userID);
+    const deletedUser = await resetUser(userID);
     expect(deletedUser).toBe(true);
   });
 
@@ -193,7 +193,7 @@ describe('upsertUser, getUserById, deleteUser', () => {
     expect(updatedUserInfo).toStrictEqual(tatiInfo);
 
     // delete the user from the database
-    const deletedUser = await deleteUser(userID);
+    const deletedUser = await resetUser(userID);
     expect(deletedUser).toBe(true);
   });
 });
