@@ -140,7 +140,7 @@ var axios_1 = __importDefault(require('axios'));
 var assert_1 = __importDefault(require('assert'));
 var TownsServiceClient = (function () {
   function TownsServiceClient(serviceURL) {
-    var baseURL = serviceURL || process.env.REACT_APP_TOWNS_SERVICE_URL;
+    var baseURL = serviceURL || 'http://localhost:8081/'; // process.env.REACT_APP_TOWNS_SERVICE_URL;
     assert_1.default(baseURL);
     this._axios = axios_1.default.create({ baseURL: baseURL });
   }

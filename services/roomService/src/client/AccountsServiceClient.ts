@@ -2,9 +2,9 @@ import assert from 'assert';
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 
 export type JoinedTown = {
-  townID: string,
-  positionX: number,
-  positionY: number,
+  townID: string;
+  positionX: number;
+  positionY: number;
 };
 
 /**
@@ -56,7 +56,7 @@ export default class AccountsServiceClient {
    * @param serviceURL
    */
   constructor(serviceURL?: string) {
-    const baseURL = serviceURL || process.env.REACT_APP_TOWNS_SERVICE_URL;
+    const baseURL = serviceURL || 'http://localhost:8081';
     assert(baseURL);
     this._axios = axios.create({ baseURL });
   }
@@ -81,7 +81,9 @@ export default class AccountsServiceClient {
   }
 
   async getUser(requestData: GetUserRequest): Promise<GetUserResponse> {
-    const responseWrapper = await this._axios.get<ResponseEnvelope<GetUserResponse>>(`/user/${requestData.userID}`);
+    const responseWrapper = await this._axios.get<ResponseEnvelope<GetUserResponse>>(
+      `/user/${requestData.userID}`,
+    );
     return AccountsServiceClient.unwrapOrThrowError(responseWrapper);
   }
 }

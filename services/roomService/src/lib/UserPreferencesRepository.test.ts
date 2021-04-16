@@ -1,14 +1,10 @@
 import { Client } from 'pg';
 import { JoinedTown, UserInfo } from '../AccountTypes';
-import {
-  deleteUser,
-  getUserByID,
-  upsertUser,
-} from './UserPreferencesRepository';
-
+import { deleteUser, getUserByID, upsertUser } from './UserPreferencesRepository';
 
 const testClient = new Client({
-  connectionString: process.env.DATABASE_CONNECTION_STRING,
+  connectionString:
+    'kisvchxzkztlyx:02c7828881c5e71290f509916361926b80923b88c0dddeaf170cb111cdbb4c51@ec2-18-204-101-137.compute-1.amazonaws.com:5432/d46idgb6list1r', // process.env.DATABASE_CONNECTION_STRING,
   ssl: {
     rejectUnauthorized: false,
   },
@@ -109,7 +105,7 @@ describe('upsertUser, getUserById, deleteUser', () => {
     // Inserts the user into the user_preferences table of the database
     const insertUser = await upsertUser(kyleInfo);
     expect(insertUser).toBe(true);
-    
+
     // Checks to see if the user was properly added to the database
     const userInfo = await getUserByID(userID);
     expect(userInfo).toStrictEqual(kyleInfo);
@@ -130,7 +126,7 @@ describe('upsertUser, getUserById, deleteUser', () => {
     expect(userInfo).toStrictEqual(jeminInfo);
 
     // Updates the given user
-    const updateUser = await upsertUser(jeminInfoUpdate); 
+    const updateUser = await upsertUser(jeminInfoUpdate);
     expect(updateUser).toBe(true);
 
     // Checks to see if the user was properly updated in the database
@@ -154,7 +150,7 @@ describe('upsertUser, getUserById, deleteUser', () => {
     expect(userInfo).toStrictEqual(johnInfo);
 
     // Updates the given user
-    const updateUser = await upsertUser(johnInfoUpdate); 
+    const updateUser = await upsertUser(johnInfoUpdate);
     expect(updateUser).toBe(true);
 
     // Checks to see if the user was properly updated in the database
@@ -177,7 +173,7 @@ describe('upsertUser, getUserById, deleteUser', () => {
     expect(userInfo).toStrictEqual(tatiInfo);
 
     // Updates the given user
-    const updateUser = await upsertUser(tatiInfoUpdate); 
+    const updateUser = await upsertUser(tatiInfoUpdate);
     expect(updateUser).toBe(true);
 
     // Checks to see if the user was properly updated in the database
