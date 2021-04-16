@@ -104,11 +104,13 @@ const tatiInfoUpdate: UserInfo = {
 };
 
 describe('upsertUser, getUserById, deleteUser', () => {
-  beforeAll(() => {
+  beforeAll(done => {
+    done();
     testClient.connect();
   });
-  afterAll(() => {
+  afterAll(done => {
     testClient.end();
+    done();
   });
   it('inserts, retrieve, and deletes a user (that has no joined town) when given a user in the database', async () => {
     const userID = 'kyle1';
