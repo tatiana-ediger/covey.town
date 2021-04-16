@@ -2,7 +2,8 @@ import { Client } from 'pg';
 import { JoinedTown } from '../AccountTypes';
 
 const client = new Client({
-  connectionString: process.env.DATABASE_CONNECTION_STRING,
+  connectionString:
+    'postgres://kisvchxzkztlyx:02c7828881c5e71290f509916361926b80923b88c0dddeaf170cb111cdbb4c51@ec2-18-204-101-137.compute-1.amazonaws.com:5432/d46idgb6list1r',
   ssl: {
     rejectUnauthorized: false,
   },
@@ -38,7 +39,13 @@ export async function upsertUser(userInfo: SavedUserInfoRequest): Promise<boolea
                 use_audio = COALESCE($4, up.use_audio),
                 use_video = COALESCE($5, up.use_video)
               WHERE up.user_id = $1;`,
-      values: [userInfo.userID, userInfo.email, userInfo.username, userInfo.useAudio, userInfo.useVideo],
+      values: [
+        userInfo.userID,
+        userInfo.email,
+        userInfo.username,
+        userInfo.useAudio,
+        userInfo.useVideo,
+      ],
     };
 
     await client.query(userPreferencesQuery);
