@@ -54,12 +54,12 @@ export default class AccountsServiceClient {
 
   /**
    * Construct a new Accounts Service API client. Specify a serviceURL for testing, or otherwise
-   * defaults to the URL at the environmental variable REACT_APP_ACCOUNTS_SERVICE_URL
+   * defaults to the URL at the environmental variable REACT_APP_TOWNS_SERVICE_URL
    * @param serviceURL
    */
   constructor(serviceURL?: string) {
     dotenv.config();
-    const baseURL = serviceURL || process.env.REACT_APP_ACCOUNTS_SERVICE_URL;
+    const baseURL = serviceURL || process.env.REACT_APP_TOWNS_SERVICE_URL;
     assert(baseURL);
     this._axios = axios.create({ baseURL });
   }
