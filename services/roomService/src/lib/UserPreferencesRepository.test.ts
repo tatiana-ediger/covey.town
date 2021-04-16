@@ -6,6 +6,7 @@ import {
   upsertUser,
 } from './UserPreferencesRepository';
 
+require('dotenv').config();
 
 const testClient = new Client({
   connectionString: process.env.DATABASE_CONNECTION_STRING,
@@ -41,7 +42,7 @@ const town3: JoinedTown = {
  * Mock User Info used throughout the tests
  */
 const jeminInfo: UserInfo = {
-  userID: 'jemin',
+  userID: 'jemin1',
   username: 'jem1',
   email: 'jemin@test.com',
   useAudio: false,
@@ -50,7 +51,7 @@ const jeminInfo: UserInfo = {
 };
 
 const jeminInfoUpdate: UserInfo = {
-  userID: 'jemin',
+  userID: 'jemin1',
   username: 'jem1',
   email: 'jemin@test.com',
   useAudio: false,
@@ -59,7 +60,7 @@ const jeminInfoUpdate: UserInfo = {
 };
 
 const kyleInfo: UserInfo = {
-  userID: 'kyle',
+  userID: 'kyle1',
   username: 'kyle1',
   email: 'kyle@test.com',
   useAudio: true,
@@ -68,7 +69,7 @@ const kyleInfo: UserInfo = {
 };
 
 const johnInfo: UserInfo = {
-  userID: 'john',
+  userID: 'john1',
   username: 'john1',
   email: 'john@test.com',
   useAudio: false,
@@ -77,7 +78,7 @@ const johnInfo: UserInfo = {
 };
 
 const johnInfoUpdate: UserInfo = {
-  userID: 'john',
+  userID: 'john1',
   username: 'john1',
   email: 'john@test.com',
   useAudio: true,
@@ -86,7 +87,7 @@ const johnInfoUpdate: UserInfo = {
 };
 
 const tatiInfo: UserInfo = {
-  userID: 'tatiana',
+  userID: 'tatiana1',
   username: 'tati1',
   email: 'tati@test.com',
   useAudio: true,
@@ -95,7 +96,7 @@ const tatiInfo: UserInfo = {
 };
 
 const tatiInfoUpdate: UserInfo = {
-  userID: 'tatiana',
+  userID: 'tatiana1',
   username: 'tati1',
   email: 'tati@test.com',
   useAudio: true,
@@ -105,7 +106,7 @@ const tatiInfoUpdate: UserInfo = {
 
 describe('upsertUser, getUserById, deleteUser', () => {
   it('inserts, retrieve, and deletes a user (that has no joined town) when given a user in the database', async () => {
-    const userID = 'kyle';
+    const userID = 'kyle1';
     // Inserts the user into the user_preferences table of the database
     const insertUser = await upsertUser(kyleInfo);
     expect(insertUser).toBe(true);
@@ -120,7 +121,7 @@ describe('upsertUser, getUserById, deleteUser', () => {
   });
 
   it('inserts, updates, retrieve, and deletes a user (that has no joined town) when given a user in the database', async () => {
-    const userID = 'jemin';
+    const userID = 'jemin1';
     // Inserts the user into the user_preferences table of the database
     const insertUser = await upsertUser(jeminInfo);
     expect(insertUser).toBe(true);
@@ -143,7 +144,7 @@ describe('upsertUser, getUserById, deleteUser', () => {
   });
 
   it('inserts, updates, retrieve, and deletes a user (that has joined town) when given a user in the database', async () => {
-    const userID = 'john';
+    const userID = 'john1';
 
     // Inserts the user into the user_preferences table of the database
     const insertUser = await upsertUser(johnInfo);
@@ -167,7 +168,7 @@ describe('upsertUser, getUserById, deleteUser', () => {
   });
 
   it('inserts, updates, retrieve, and deletes a user (that has joined town) when given a user in the database', async () => {
-    const userID = 'tatiana';
+    const userID = 'tatiana1';
     // Inserts the user into the user_preferences table of the database
     const insertUser = await upsertUser(tatiInfo);
     expect(insertUser).toBe(true);

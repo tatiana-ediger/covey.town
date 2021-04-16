@@ -57,7 +57,10 @@ export default class AccountsServiceClient {
    * @param serviceURL
    */
   constructor(serviceURL?: string) {
-    const baseURL = serviceURL || process.env.REACT_APP_TOWNS_SERVICE_URL;
+    require('dotenv').config();
+    console.log(process.env.REACT_APP_ACCOUNTS_SERVICE_URL);
+    const baseURL = serviceURL || process.env.REACT_APP_ACCOUNTS_SERVICE_URL;
+    console.log(`baseurl: ${baseURL}`);
     assert(baseURL);
     this._axios = axios.create({ baseURL });
   }
