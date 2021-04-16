@@ -16,8 +16,6 @@ const testClient = new Client({
   },
 });
 
-testClient.connect();
-
 /**
  * Mock TownInfo used throughout the tests
  */
@@ -106,7 +104,10 @@ const tatiInfoUpdate: UserInfo = {
 };
 
 describe('upsertUser, getUserById, deleteUser', () => {
-  afterAll(async () => {
+  beforeAll(() => {
+    testClient.connect();
+  });
+  afterAll(() => {
     testClient.end();
   });
   it('inserts, retrieve, and deletes a user (that has no joined town) when given a user in the database', async () => {
