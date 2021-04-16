@@ -1,3 +1,4 @@
+import dotenv from 'dotenv';
 import { Client } from 'pg';
 import { JoinedTown, UserInfo } from '../AccountTypes';
 import {
@@ -6,8 +7,7 @@ import {
   upsertUser,
 } from './UserPreferencesRepository';
 
-require('dotenv').config();
-
+dotenv.config();
 const testClient = new Client({
   connectionString: process.env.DATABASE_CONNECTION_STRING,
   ssl: {

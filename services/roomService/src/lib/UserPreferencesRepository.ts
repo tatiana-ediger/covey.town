@@ -1,8 +1,8 @@
+import dotenv from 'dotenv';
 import { Client } from 'pg';
 import { JoinedTown } from '../AccountTypes';
 
-require('dotenv').config();
-
+dotenv.config();
 const client = new Client({
   connectionString: process.env.DATABASE_CONNECTION_STRING,
   ssl: {
