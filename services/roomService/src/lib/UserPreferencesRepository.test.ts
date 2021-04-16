@@ -1,3 +1,4 @@
+import { doesNotMatch } from 'assert';
 import dotenv from 'dotenv';
 import { Client } from 'pg';
 import { JoinedTown, UserInfo } from '../AccountTypes';
@@ -105,6 +106,9 @@ const tatiInfoUpdate: UserInfo = {
 };
 
 describe('upsertUser, getUserById, deleteUser', () => {
+  afterAll(async () => {
+    testClient.end();
+  });
   it('inserts, retrieve, and deletes a user (that has no joined town) when given a user in the database', async () => {
     const userID = 'kyle1';
     // Inserts the user into the user_preferences table of the database
