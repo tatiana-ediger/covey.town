@@ -20,7 +20,27 @@ TODO for the others
 -
 
 TA Q's
+
 - deployment / deployment issue
 - how to use Auth0 with Heroku??
 - prefill useAudio/ useVideo (understanding that code)
 - figure out how to load most recent position
+
+TODO for final deliverable: ✓ ☐
+☐ Have a working implementation of our user stories
+☐ Any added features have tests
+-these tests have no ESLint warnings or errors
+☐ README.md file contains:
+☐ detailed instruction to deploy the application with your new feature
+☐ document includes a link to git repository or instructions to access it
+✓ FEATURES.md file contains:
+✓ sufficient documentation for a user to interact with the updated version of covey town
+✓ covers all steps the user would need to exercise each of the user stories
+☐ DESIGN.md file contains:
+☐ a description of any substative changes to the existing covey town codebase
+☐ architecture of new code
+☐ uses crc cards / diagrams to help describe the structure
+☐ Demonstration video:
+☐ is less than 10 minutes
+☐ contains a brief description of the high level components introduced or modified
+☐ successfully demonstrates all of the primary implemented user stories
