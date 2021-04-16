@@ -4,7 +4,7 @@ import http from 'http';
 import { AddressInfo } from 'net';
 import addAccountRoutes from '../router/accounts';
 
-import TownsServiceClient, { ResetUserRequest, GetUserResponse, JoinedTown, SaveUserRequest } from './TownsServiceClient';
+import CoveyServicesClient, { ResetUserRequest, GetUserResponse, JoinedTown, SaveUserRequest, DeleteUserRequest } from './CoveyServicesClient';
 import { GetUserRequest } from '../requestHandlers/AccountRequestHandlers';
 
 /**
@@ -101,6 +101,25 @@ const jeminUserIDResetUser: ResetUserRequest = {
 };
 
 /**
+ * Example data for DeleteUserRequest
+ */
+const jeminDeleteUser: DeleteUserRequest = {
+  userID: 'jemin',
+};
+
+const tatiDeleteUser: DeleteUserRequest = {
+  userID: 'tatiana',
+};
+
+const johnDeleteUser: DeleteUserRequest = {
+  userID: 'john',
+};
+
+const jeminUserIDDeleteUser: DeleteUserRequest = {
+  userID: 'jay',
+};
+
+/**
  * example data for return of GetUserResponse
  */
 const jeminUserResponse: GetUserResponse = {
@@ -114,7 +133,7 @@ const jeminUserResponse: GetUserResponse = {
 
 describe('AccountsServicesAPIREST', () => {
   let server: http.Server;
-  let apiClient: TownsServiceClient;
+  let apiClient: CoveyServicesClient;
 
   beforeAll(async () => {
     const app = Express();
@@ -125,7 +144,7 @@ describe('AccountsServicesAPIREST', () => {
     await server.listen();
     const address = server.address() as AddressInfo;
 
-    apiClient = new TownsServiceClient(`http://127.0.0.1:${address.port}`);
+    apiClient = new CoveyServicesClient(`http://127.0.0.1:${address.port}`);
   });
   afterAll(async () => {
     await server.close();
@@ -139,7 +158,8 @@ describe('AccountsServicesAPIREST', () => {
         const getUserResult = await apiClient.getUser(jeminGetUser);
         expect(getUserResult).toStrictEqual(jeminSaveUser);
 
-        await apiClient.resetUser(jeminResetUser)
+        await apiClient.resetUser(jeminResetUser);
+        await apiClient.deleteUser(jeminDeleteUser);
       } catch (err){
         // shouldn't fail here
         fail(err.toString());
@@ -152,7 +172,8 @@ describe('AccountsServicesAPIREST', () => {
         const getUserResult = await apiClient.getUser(johnGetUser);
         expect(getUserResult).toStrictEqual(johnSaveUser);
 
-        await apiClient.resetUser(johnResetUser)
+        await apiClient.resetUser(johnResetUser);
+        await apiClient.deleteUser(johnDeleteUser);
       } catch (err) {
         // shouldn't fail here
         fail(err.toString());
@@ -165,7 +186,8 @@ describe('AccountsServicesAPIREST', () => {
         const getUserResult = await apiClient.getUser(tatiGetUser);
         expect(getUserResult).toStrictEqual(tatiSaveUser);
 
-        await apiClient.resetUser(tatiResetUser)
+        await apiClient.resetUser(tatiResetUser);
+        await apiClient.deleteUser(tatiDeleteUser);
       } catch (err) {
         // shouldn't fail here
         fail(err.toString());
@@ -178,7 +200,8 @@ describe('AccountsServicesAPIREST', () => {
         const getUserResult = await apiClient.getUser(jeminUserIDGetUser);
         expect(getUserResult).toStrictEqual(jeminUserResponse);
 
-        await apiClient.resetUser(jeminUserIDResetUser)
+        await apiClient.resetUser(jeminUserIDResetUser);
+        await apiClient.deleteUser(jeminUserIDDeleteUser);
       } catch (err) {
         // shouldn't fail here
         fail(err.toString());

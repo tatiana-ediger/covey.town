@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { makeStyles } from '@material-ui/core';
 import { Auth0ContextInterface } from '@auth0/auth0-react';
 import { Button, Image, useToast } from '@chakra-ui/react';
@@ -49,7 +49,6 @@ export default function Registration({ auth0, setUserInfo }: RegistrationProps):
         const getResponse = await apiClient.getUser({ userID });
         setUserInfo(getResponse);
       } catch (err) {
-        console.log(err);
         toast({
           title: 'Unable to connect to Account Service',
           description: err.toString(),
@@ -78,9 +77,8 @@ export default function Registration({ auth0, setUserInfo }: RegistrationProps):
                 onClick={() => {
                   deleteAccountHandler(auth0.user.sub);
                 }}>
-                  Clear Preferences
+                  Reset Settings
               </Button>
-              
             </div>
           </>
       );
