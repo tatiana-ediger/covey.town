@@ -1,8 +1,6 @@
 import dotenv from 'dotenv';
+import { Client } from 'pg';
 import { JoinedTown } from '../AccountTypes';
-
-// eslint-disable-next-line
-const { Client } = require('pg');
 
 dotenv.config();
 const client = new Client({
@@ -42,7 +40,13 @@ export async function upsertUser(userInfo: SavedUserInfoRequest): Promise<boolea
                 use_audio = COALESCE($4, up.use_audio),
                 use_video = COALESCE($5, up.use_video)
               WHERE up.user_id = $1;`,
-      values: [userInfo.userID, userInfo.email, userInfo.username, userInfo.useAudio, userInfo.useVideo],
+      values: [
+        userInfo.userID,
+        userInfo.email,
+        userInfo.username,
+        userInfo.useAudio,
+        userInfo.useVideo,
+      ],
     };
 
     await client.query(userPreferencesQuery);
