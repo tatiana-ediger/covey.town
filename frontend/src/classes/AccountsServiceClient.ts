@@ -58,8 +58,8 @@ export default class AccountsServiceClient {
    * @param serviceURL
    */
   constructor(serviceURL?: string) {
-    const config = dotenv.config();
-    const baseURL = serviceURL || config.parsed?.REACT_APP_TOWNS_SERVICE_URL;
+    // const config = dotenv.config();
+    const baseURL = serviceURL || 'http://localhost:8081/'; // config.parsed?.REACT_APP_TOWNS_SERVICE_URL;
     assert(baseURL);
     this._axios = axios.create({ baseURL });
   }
