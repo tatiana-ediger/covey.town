@@ -1,10 +1,14 @@
 import dotenv from 'dotenv';
-import { Client } from 'pg';
 import { JoinedTown } from '../AccountTypes';
+
+// eslint-disable-next-line
+const { Client } = require('pg');
+
+dotenv.config();
 
 const config = dotenv.config();
 const client = new Client({
-  connectionString: process.env.DATABASE_CONNECTION_STRING || config.parsed?.DATABASE_CONNECTION_STRING,
+  connectionString: process.env.DATABASE_CONNECTION_STRING,
   ssl: {
     rejectUnauthorized: false,
   },
@@ -40,7 +44,13 @@ export async function upsertUser(userInfo: SavedUserInfoRequest): Promise<boolea
                 use_audio = COALESCE($4, up.use_audio),
                 use_video = COALESCE($5, up.use_video)
               WHERE up.user_id = $1;`,
-      values: [userInfo.userID, userInfo.email, userInfo.username, userInfo.useAudio, userInfo.useVideo],
+      values: [
+        userInfo.userID,
+        userInfo.email,
+        userInfo.username,
+        userInfo.useAudio,
+        userInfo.useVideo,
+      ],
     };
 
     await client.query(userPreferencesQuery);
@@ -128,7 +138,9 @@ export async function getUserByID(userID: string): Promise<SavedUserInfoRequest 
 export async function resetUser(userID: string): Promise<boolean> {
   try {
     await client.query(`DELETE FROM towns WHERE user_id = '${userID}';`);
-    await client.query(`UPDATE user_preferences SET username = '', use_audio = false, use_video = false WHERE user_id = '${userID}';`);
+    await client.query(
+      `UPDATE user_preferences SET username = '', use_audio = false, use_video = false WHERE user_id = '${userID}';`,
+    );
 
     return true;
   } catch (err) {
