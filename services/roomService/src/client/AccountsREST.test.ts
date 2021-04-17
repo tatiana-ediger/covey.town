@@ -69,7 +69,26 @@ const johnUserID = { userID: 'john' };
 const jayUserID = { userID: 'jay' };
 
 /**
- * example data for return of GetUserResponse
+ * Example data for ResetUserRequest
+ */
+const jeminResetUser: ResetUserRequest = {
+  userID: 'jemin',
+};
+
+const tatiResetUser: ResetUserRequest = {
+  userID: 'tatiana',
+};
+
+const johnResetUser: ResetUserRequest = {
+  userID: 'john',
+};
+
+const jeminUserIDResetUser: ResetUserRequest = {
+  userID: 'jay',
+};
+
+/**
+ * Example data for DeleteUserRequest
  */
 const jeminUserResponse: GetUserResponse = {
   userID: 'jay',
