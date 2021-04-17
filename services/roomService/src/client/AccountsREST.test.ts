@@ -4,7 +4,7 @@ import http from 'http';
 import { AddressInfo } from 'net';
 import addAccountRoutes from '../router/accounts';
 
-import CoveyServicesClient, { GetUserResponse, JoinedTown, ResetUserRequest, SaveUserRequest } from './CoveyServicesClient';
+import CoveyServicesClient, { GetUserResponse, JoinedTown, SaveUserRequest } from './CoveyServicesClient';
 
 /**
  * Example data for Joined towns 
@@ -107,7 +107,6 @@ describe('AccountsServicesAPIREST', () => {
         const getUserResult = await apiClient.getUser(jeminUserID);
         expect(getUserResult).toStrictEqual(jeminSaveUser);
 
-        await apiClient.resetUser(jeminUserID);
         await apiClient.deleteUser(jeminUserID);
       } catch (err){
         // shouldn't fail here
@@ -121,7 +120,6 @@ describe('AccountsServicesAPIREST', () => {
         const getUserResult = await apiClient.getUser(johnUserID);
         expect(getUserResult).toStrictEqual(johnSaveUser);
 
-        await apiClient.resetUser(johnUserID);
         await apiClient.deleteUser(johnUserID);
       } catch (err) {
         // shouldn't fail here
@@ -135,7 +133,6 @@ describe('AccountsServicesAPIREST', () => {
         const getUserResult = await apiClient.getUser(tatiUserID);
         expect(getUserResult).toStrictEqual(tatiSaveUser);
 
-        await apiClient.resetUser(tatiUserID);
         await apiClient.deleteUser(tatiUserID);
       } catch (err) {
         // shouldn't fail here
@@ -149,7 +146,6 @@ describe('AccountsServicesAPIREST', () => {
         const getUserResult = await apiClient.getUser(jayUserID);
         expect(getUserResult).toStrictEqual(jeminUserResponse);
 
-        await apiClient.resetUser(jayUserID);
         await apiClient.deleteUser(jayUserID);
       } catch (err) {
         // shouldn't fail here
