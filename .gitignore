@@ -117,4 +117,3 @@ ngrok.yml
 
 # Local Netlify folder
 .netlify
-services/roomService/package-lock.json
