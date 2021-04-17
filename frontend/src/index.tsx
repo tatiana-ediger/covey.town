@@ -1,17 +1,16 @@
+import { Auth0Provider } from '@auth0/auth0-react';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
-import { Auth0Provider } from '@auth0/auth0-react';
 import App from './App';
+import './index.css';
 import reportWebVitals from './reportWebVitals';
 
 ReactDOM.render(
   <React.StrictMode>
     <Auth0Provider
-      domain={process.env.AUTH_0_DOMAIN ?? ''}
-      clientId={process.env.AUTH_0_CLIENT_ID ?? ''}
-      redirectUri={window.location.origin}
-    >
+      domain={process.env.AUTH_0_DOMAIN || 'app-covey-town.us.auth0.com'}
+      clientId={process.env.AUTH_0_CLIENT_ID || 'GbFgxyAr3MmkmHrGPSWmfWAGXwWonBRA'}
+      redirectUri={window.location.origin}>
       <App />
     </Auth0Provider>
   </React.StrictMode>,
