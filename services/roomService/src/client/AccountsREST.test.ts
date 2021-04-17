@@ -4,7 +4,7 @@ import http from 'http';
 import { AddressInfo } from 'net';
 import addAccountRoutes from '../router/accounts';
 
-import CoveyServicesClient, { GetUserResponse, JoinedTown, SaveUserRequest } from './CoveyServicesClient';
+import CoveyServicesClient, { GetUserResponse, JoinedTown, ResetUserRequest, SaveUserRequest } from './CoveyServicesClient';
 
 /**
  * Example data for Joined towns 
@@ -67,25 +67,6 @@ const tatiUserID = { userID: 'tatiana' };
 const johnUserID = { userID: 'john' };
 
 const jayUserID = { userID: 'jay' };
-
-/**
- * Example data for ResetUserRequest
- */
-const jeminResetUser: ResetUserRequest = {
-  userID: 'jemin',
-};
-
-const tatiResetUser: ResetUserRequest = {
-  userID: 'tatiana',
-};
-
-const johnResetUser: ResetUserRequest = {
-  userID: 'john',
-};
-
-const jeminUserIDResetUser: ResetUserRequest = {
-  userID: 'jay',
-};
 
 /**
  * Example data for DeleteUserRequest
